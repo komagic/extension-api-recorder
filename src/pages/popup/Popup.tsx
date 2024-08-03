@@ -6,6 +6,7 @@ import '@pages/popup/Popup.css';
 import withSuspense from '@src/shared/hoc/withSuspense';
 import withErrorBoundary from '@src/shared/hoc/withErrorBoundary';
 import Content from './content';
+import { Skeleton } from '@nextui-org/react';
 const Popup = () => {
   // const theme = useStorage(exampleThemeStorage);
 
@@ -25,4 +26,4 @@ const Popup = () => {
   );
 };
 
-export default withErrorBoundary(withSuspense(Popup, <div> Loading ... </div>), <div> Error Occur </div>);
+export default withErrorBoundary(withSuspense(Popup, <Skeleton> Loading ... </Skeleton>), <div> Error Occur </div>);

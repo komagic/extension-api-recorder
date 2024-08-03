@@ -1,6 +1,7 @@
+import PlayIcon from '@assets/img/play.svg';
 import { Button, Card, CardBody, CardFooter, CardHeader, Divider, Image } from '@nextui-org/react';
 import React from 'react';
-
+import Icon from './Icon';
 interface ContentProps {
   children?: React.ReactNode;
 }
@@ -25,9 +26,13 @@ const Content: React.FC<ContentProps> = () => {
       </CardHeader>
       <Divider />
       <CardBody>
-        <p>Make beautiful websites regardless of your design experience.</p>
+        <div className="grid grid-cols-2 gap-2">
+          <Button startContent={<Icon icon={PlayIcon} />}>开始记录</Button>
+        </div>
       </CardBody>
-      <CardFooter>Shi En</CardFooter>
+      <CardFooter>
+        <p>Mr.ShiEn</p>
+      </CardFooter>
       <Divider />
     </Card>
   );

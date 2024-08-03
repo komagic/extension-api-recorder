@@ -1,7 +1,14 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+
+import autoprefixer from 'autoprefixer';
+
+import { defineConfig } from 'vite';
+
 import path, { resolve } from 'path';
+
+import tailwindcss from 'tailwindcss';
+
 import { getCacheInvalidationKey, getPlugins } from './utils/vite';
 
 const rootDir = resolve(__dirname);
@@ -18,6 +25,11 @@ export default defineConfig({
       '@src': srcDir,
       '@assets': resolve(srcDir, 'assets'),
       '@pages': pagesDir,
+    },
+  },
+  css: {
+    postcss: {
+      plugins: [tailwindcss, autoprefixer],
     },
   },
   plugins: [...getPlugins(isDev), react()],

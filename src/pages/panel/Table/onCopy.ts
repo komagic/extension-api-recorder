@@ -1,11 +1,18 @@
-function fallbackCopyTextToClipboard(text) {
+const compatibilityCopy = (text: string) => {
   const input = document.createElement('input');
   input.setAttribute('value', text);
   document.body.appendChild(input);
   input.select();
-  document.execCommand('copy');
-  document.body.removeChild(input);
-}
+  let result;
+  try {
+    result = document.execCommand('copy'); // 尝试复制
+  } catch (err) {
+    console.error('useClipboard: copy failed', err);
+  } finally {
+    document.body.removeChild(input);
+  }
+  return result;
+};
 export default function onCopy(text) {
   navigator.clipboard.writeText(text).then(
     () => {
@@ -13,7 +20,7 @@ export default function onCopy(text) {
     },
     err => {
       console.warn('Async: Could not copy text: ', err, 'try fallbackCopyTextToClipboard');
-      fallbackCopyTextToClipboard(text);
+      compatibilityCopy(text);
     },
   );
 }

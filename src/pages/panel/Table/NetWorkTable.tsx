@@ -1,44 +1,60 @@
-import { CopyOutlined } from '@ant-design/icons';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Button,
-  Chip,
-  ChipProps,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
   Input,
+  Button,
+  DropdownTrigger,
+  Dropdown,
+  DropdownMenu,
+  DropdownItem,
+  User,
   Pagination,
   Selection,
+  ChipProps,
   SortDescriptor,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-  User,
 } from '@nextui-org/react';
-import React from 'react';
-import { ChevronDownIcon } from './ChevronDownIcon';
-import PlusIcon from './PlusIcon';
-import { SearchIcon } from './SearchIcon';
+import { PlusIcon } from './PlusIcon';
 import { VerticalDotsIcon } from './VerticalDotsIcon';
-import { columns, statusOptions, users } from './data';
-import onCopy from './onCopy';
+import { ChevronDownIcon } from './ChevronDownIcon';
+import { SearchIcon } from './SearchIcon';
+import { columns, users, statusOptions } from './data';
 import { capitalize } from './utils';
+import { NetworkEvent } from './type';
 
-const statusColorMap: Record<string, ChipProps['color']> = {
-  active: 'success',
-  paused: 'danger',
-  vacation: 'warning',
-};
+// const statusColorMap: Record<string, ChipProps['color']> = {
+//   active: 'success',
+//   paused: 'danger',
+//   vacation: 'warning',
+// };
 
-const INITIAL_VISIBLE_COLUMNS = ['name', 'role', 'status', 'actions'];
+const INITIAL_VISIBLE_COLUMNS = ['url', 'role', 'status', 'actions'];
 
 type User = (typeof users)[0];
 
-export default function App() {
+function App() {
+  const [networkEvents, setNetworkEvents] = useState<NetworkEvent[]>([]);
+  const [filter_types, set_filter_types] = useState<string[]>(['xhr', 'fetch']);
+  const clearEvents = useCallback(() => {
+    setNetworkEvents([]);
+  }, []);
+  const displayData = networkEvents
+    ?.filter(item => {
+      return filter_types.includes(item?._resourceType);
+    })
+    .map((networkEvent: NetworkEvent, index) => {
+      return {
+        id: index,
+        ...networkEvent,
+        url: networkEvent?.request.url,
+      };
+    });
+  console.log('displayData', displayData);
+
   const [filterValue, setFilterValue] = React.useState('');
   const [selectedKeys, setSelectedKeys] = React.useState<Selection>(new Set([]));
   const [visibleColumns, setVisibleColumns] = React.useState<Selection>(new Set(INITIAL_VISIBLE_COLUMNS));
@@ -72,7 +88,7 @@ export default function App() {
     return filteredUsers;
   }, [users, filterValue, statusFilter]);
 
-  const pages = Math.ceil(filteredItems.length / rowsPerPage);
+  const pages = Math.ceil(displayData?.length / rowsPerPage);
 
   const items = React.useMemo(() => {
     const start = (page - 1) * rowsPerPage;
@@ -91,38 +107,11 @@ export default function App() {
     });
   }, [sortDescriptor, items]);
 
-  const renderCell = React.useCallback((user: User, columnKey: React.Key) => {
-    const cellValue = user[columnKey as keyof User];
-    console.log('cellValue', cellValue);
+  const renderCell = React.useCallback((user: NetworkEvent, columnKey: React.Key) => {
+    console.log('renderCell', user);
     switch (columnKey) {
-      case 'name':
-        return (
-          <div className="flex items-center gap-2">
-            <span>{user?.name}</span>
-            <Button
-              size="sm"
-              onClick={e => {
-                e?.stopPropagation();
-                onCopy(cellValue + '');
-              }}
-              className="min-w-8"
-              endContent={<CopyOutlined />}
-            />
-          </div>
-        );
-      case 'role':
-        return (
-          <div className="flex flex-col">
-            <p className="text-bold text-small capitalize">{cellValue}</p>
-            <p className="text-bold text-tiny capitalize text-default-400">{user.team}</p>
-          </div>
-        );
-      case 'status':
-        return (
-          <Chip className="capitalize" color={statusColorMap[user.status]} size="sm" variant="flat">
-            {cellValue}
-          </Chip>
-        );
+      case 'url':
+        return <span>{user.url}</span>;
       case 'actions':
         return (
           <div className="relative flex justify-end items-center gap-2">
@@ -141,7 +130,7 @@ export default function App() {
           </div>
         );
       default:
-        return cellValue;
+        return null;
     }
   }, []);
 
@@ -254,20 +243,30 @@ export default function App() {
     return (
       <div className="py-2 px-2 flex justify-between items-center">
         <span className="w-[30%] text-small text-default-400">
-          {selectedKeys === 'all' ? 'All items selected' : `${selectedKeys.size} of ${filteredItems.length} selected`}
+          {selectedKeys === 'all' ? 'All items selected' : `${selectedKeys.size} of ${displayData.length} selected`}
         </span>
         <Pagination isCompact showControls showShadow color="primary" page={page} total={pages} onChange={setPage} />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
           <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onPreviousPage}>
-            上一页
+            Previous
           </Button>
           <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onNextPage}>
-            下一页
+            Next
           </Button>
         </div>
       </div>
     );
   }, [selectedKeys, items.length, page, pages, hasSearchFilter]);
+
+  useEffect(() => {
+    chrome.devtools.network.onRequestFinished.addListener((networkEvent: NetworkEvent) => {
+      setNetworkEvents(networkEvents => [...networkEvents, networkEvent]);
+    });
+
+    chrome.devtools.network.onNavigated.addListener(() => {
+      clearEvents();
+    });
+  }, [clearEvents]);
 
   return (
     <Table
@@ -295,9 +294,13 @@ export default function App() {
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody emptyContent={'No users found'} items={sortedItems}>
-        {item => <TableRow key={item.id}>{columnKey => <TableCell>{renderCell(item, columnKey)}</TableCell>}</TableRow>}
+      <TableBody emptyContent={'No users found'} items={displayData}>
+        {item => (
+          <TableRow key={item?.id}>{columnKey => <TableCell>{renderCell(item, columnKey)}</TableCell>}</TableRow>
+        )}
       </TableBody>
     </Table>
   );
 }
+
+export default App;

@@ -1,6 +1,5 @@
 import '@pages/newtab/Newtab.css';
 import '@pages/newtab/Newtab.scss';
-import NetWorkTable from '@src/pages/panel/Table/NetWorkTable';
 import withErrorBoundary from '@src/shared/hoc/withErrorBoundary';
 import withSuspense from '@src/shared/hoc/withSuspense';
 import useStorage from '@src/shared/hooks/useStorage';
@@ -14,9 +13,7 @@ const Newtab = () => {
       className="App"
       style={{
         backgroundColor: theme === 'light' ? '#ffffff' : '#000000',
-      }}>
-      <NetWorkTable />
-    </div>
+      }}></div>
   );
 };
 

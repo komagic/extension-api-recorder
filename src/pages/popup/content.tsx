@@ -1,5 +1,5 @@
 import PlayIcon from '@assets/img/play.svg';
-import { Button, Card, CardBody, CardFooter, CardHeader, Divider, Image } from '@nextui-org/react';
+import { Button, Card, CardBody, CardFooter, CardHeader, Chip, Divider, Image } from '@nextui-org/react';
 import React from 'react';
 import Icon from './Icon';
 interface ContentProps {
@@ -18,7 +18,9 @@ const Content: React.FC<ContentProps> = () => {
           width={40}
         />
         <div className="flex flex-col">
-          <p className="text-lg">API Recorder</p>
+          <Chip color="warning" variant="shadow">
+            API Recorder
+          </Chip>
         </div>
         <Button size="sm" color="primary" className="ml-auto">
           打开应用

@@ -17,27 +17,81 @@ import {
   Selection,
   ChipProps,
   SortDescriptor,
+  Snippet,
 } from '@nextui-org/react';
 import { PlusIcon } from './PlusIcon';
 import { VerticalDotsIcon } from './VerticalDotsIcon';
 import { ChevronDownIcon } from './ChevronDownIcon';
 import { SearchIcon } from './SearchIcon';
-import { columns, users, statusOptions } from './data';
+import { users, statusOptions } from './data';
 import { capitalize } from './utils';
 import { NetworkEvent } from './type';
-
+import { CheckOutlined, CopyOutlined } from '@ant-design/icons';
+import { useClipboard } from './useClipboard';
+import TabsComponent from './components/TabsComponent';
+import useModal from './Context/useModal';
+import { StoreProvider, useStore } from './Context/useStore';
+const columns = [
+  { name: 'URL', uid: 'url', sortable: true },
+  { name: '状态', uid: 'status', sortable: true },
+  { name: '数据', uid: 'data', width: 300 },
+  { name: '操作', uid: 'actions' },
+];
 // const statusColorMap: Record<string, ChipProps['color']> = {
 //   active: 'success',
 //   paused: 'danger',
 //   vacation: 'warning',
 // };
 
-const INITIAL_VISIBLE_COLUMNS = ['url', 'role', 'status', 'actions'];
+const INITIAL_VISIBLE_COLUMNS = columns.map(i => i.uid);
 
 type User = (typeof users)[0];
 
-function App() {
+const RenderCell = ({ item, columnKey, onOpen }) => {
+  const { copy, copied } = useClipboard();
+
+  switch (columnKey) {
+    case 'url':
+      return (
+        <div className="flex gap-4 items-center">
+          <span>{item.url}</span>
+          <Button className="p-0 min-w-10" size="sm" onClick={() => copy(item.url)}>
+            {copied ? <CheckOutlined /> : <CopyOutlined />}
+          </Button>
+        </div>
+      );
+    case 'status':
+      return <div className="flex gap-4 items-center"></div>;
+
+    case 'data':
+      return (
+        <div>
+          <TabsComponent />
+        </div>
+      );
+    default:
+      return (
+        <div className="relative flex justify-end items-center gap-2">
+          <Dropdown>
+            <DropdownTrigger>
+              <Button isIconOnly size="sm" variant="light">
+                <VerticalDotsIcon className="text-default-300" />
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu>
+              <DropdownItem>View</DropdownItem>
+              <DropdownItem>Edit</DropdownItem>
+              <DropdownItem>Delete</DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        </div>
+      );
+  }
+};
+
+const NetWorkTable = () => {
   const [networkEvents, setNetworkEvents] = useState<NetworkEvent[]>([]);
+  const { storeData } = useStore();
   const [filter_types, set_filter_types] = useState<string[]>(['xhr', 'fetch']);
   const clearEvents = useCallback(() => {
     setNetworkEvents([]);
@@ -53,7 +107,6 @@ function App() {
         url: networkEvent?.request.url,
       };
     });
-  console.log('displayData', displayData);
 
   const [filterValue, setFilterValue] = React.useState('');
   const [selectedKeys, setSelectedKeys] = React.useState<Selection>(new Set([]));
@@ -107,33 +160,6 @@ function App() {
     });
   }, [sortDescriptor, items]);
 
-  const renderCell = React.useCallback((user: NetworkEvent, columnKey: React.Key) => {
-    console.log('renderCell', user);
-    switch (columnKey) {
-      case 'url':
-        return <span>{user.url}</span>;
-      case 'actions':
-        return (
-          <div className="relative flex justify-end items-center gap-2">
-            <Dropdown>
-              <DropdownTrigger>
-                <Button isIconOnly size="sm" variant="light">
-                  <VerticalDotsIcon className="text-default-300" />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu>
-                <DropdownItem>View</DropdownItem>
-                <DropdownItem>Edit</DropdownItem>
-                <DropdownItem>Delete</DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-          </div>
-        );
-      default:
-        return null;
-    }
-  }, []);
-
   const onNextPage = React.useCallback(() => {
     if (page < pages) {
       setPage(page + 1);
@@ -165,9 +191,39 @@ function App() {
     setPage(1);
   }, []);
 
+  const { ModalComponent, onOpen } = useStore();
+
+  useEffect(() => {
+    const handler = (message, sender, sendResponse) => {
+      console.log('messagemessage', message);
+      if (message.type === 'apirecorder_xhr_response') {
+        const { path, response } = message.data;
+
+        // 在 DevTools 中处理接收到的消息
+        console.log(`Intercepted XHR at ${path}: ${response}`);
+        // 你可以将数据展示在 DevTools 面板中，或做进一步的处理
+      }
+    };
+    const handleMessage = event => {
+      console.log('handleMessage', event);
+      if (event.data.type === 'apirecorder_xhr_response') {
+        console.log('event.data', event.data);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    chrome.runtime.onMessage.addListener(handler);
+    // return () => {
+    //   chrome.runtime.onMessage.removeListener(handler);
+    // };
+  }, []);
+
   const topContent = React.useMemo(() => {
     return (
-      <div className="flex flex-col gap-4">
+      <div
+        className="flex flex-col gap-4"
+        style={{
+          transform: 'translate3d(0,0,0)',
+        }}>
         <div className="flex justify-between gap-3 items-end">
           <Input
             isClearable
@@ -242,6 +298,7 @@ function App() {
   const bottomContent = React.useMemo(() => {
     return (
       <div className="py-2 px-2 flex justify-between items-center">
+        <ModalComponent />
         <span className="w-[30%] text-small text-default-400">
           {selectedKeys === 'all' ? 'All items selected' : `${selectedKeys.size} of ${displayData.length} selected`}
         </span>
@@ -270,20 +327,26 @@ function App() {
 
   return (
     <Table
-      aria-label="Example table with custom cells, pagination and sorting"
-      isHeaderSticky
+      aria-label="Example table with custom cells"
+      isHeaderSticky={true}
       bottomContent={bottomContent}
       bottomContentPlacement="outside"
-      classNames={{
-        wrapper: 'max-h-[382px]',
-      }}
+      // classNames={{
+      //   wrapper: 'max-h-[382px]',
+      // }}
+      disableAnimation
       selectedKeys={selectedKeys}
       selectionMode="multiple"
       sortDescriptor={sortDescriptor}
       topContent={topContent}
       topContentPlacement="outside"
       onSelectionChange={setSelectedKeys}
-      onSortChange={setSortDescriptor}>
+      onRowAction={key => {}}
+      onCellAction={action => {}}
+      disabledBehavior={'selection'}
+
+      // onSortChange={setSortDescriptor}
+    >
       <TableHeader columns={headerColumns}>
         {column => (
           <TableColumn
@@ -294,13 +357,31 @@ function App() {
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody emptyContent={'No users found'} items={displayData}>
+      <TableBody emptyContent={'No apis found'} items={displayData}>
         {item => (
-          <TableRow key={item?.id}>{columnKey => <TableCell>{renderCell(item, columnKey)}</TableCell>}</TableRow>
+          <TableRow
+            key={item?.id}
+            data-focus-visible={false}
+            onClick={e => {
+              e.stopPropagation();
+            }}>
+            {columnKey => (
+              <TableCell data-selected={false}>
+                <RenderCell item={item} onOpen={onOpen} columnKey={columnKey} />
+              </TableCell>
+            )}
+          </TableRow>
         )}
       </TableBody>
     </Table>
   );
-}
+};
 
-export default App;
+// eslint-disable-next-line react/display-name
+export default () => {
+  return (
+    <StoreProvider>
+      <NetWorkTable />
+    </StoreProvider>
+  );
+};

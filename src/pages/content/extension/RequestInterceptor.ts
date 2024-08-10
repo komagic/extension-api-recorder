@@ -1,3 +1,15 @@
+import { data } from 'autoprefixer';
+
+const sendMessage = message => {
+  window.postMessage(
+    {
+      type: 'apirecorder_xhr_response',
+      data: message,
+    },
+    '*',
+  );
+};
+
 class RequestInterceptor {
   constructor() {
     this.interceptXHR();
@@ -14,7 +26,18 @@ class RequestInterceptor {
       // 可以修改请求的URL，或者保存请求数据
       this.onreadystatechange = function () {
         if (this.readyState === XMLHttpRequest.DONE) {
-          console.log(`XHR Response: ${this.responseText}`);
+          // console.log(`XHR Response: ${this.responseText}`);
+
+          try {
+            const path = new URL(window.location.origin + url)?.pathname;
+            const res = JSON.parse(this.responseText);
+            console.log('XHR Response:', this.responseText);
+            if (this.responseText) {
+              sendMessage(this.responseText);
+            }
+          } catch (error) {
+            console.error('XHR  error:', error);
+          }
         }
       };
       originalXhrOpen.apply(this, arguments);

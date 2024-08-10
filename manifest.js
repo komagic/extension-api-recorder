@@ -15,13 +15,14 @@ const manifest = {
   name: '__MSG_extensionName__',
   version: packageJson.version,
   description: '__MSG_extensionDescription__',
-  permissions: ['storage', 'clipboardWrite', 'scripting', '<all_urls>'],
+  permissions: ['devtools_page', 'storage', 'clipboardRead', 'clipboardWrite', 'scripting', '<all_urls>', 'activeTab'],
   side_panel: {
     default_path: 'src/pages/sidepanel/index.html',
   },
   options_page: 'src/pages/options/index.html',
   background: {
     service_worker: 'src/pages/background/index.js',
+    type: 'module',
   },
   action: {
     default_popup: 'src/pages/popup/index.html',
@@ -30,6 +31,10 @@ const manifest = {
   chrome_url_overrides: {
     newtab: 'src/pages/newtab/index.html',
   },
+  externally_connectable: {
+    matches: ['http://*/*', 'https://*/*', '<all_urls>'],
+  },
+
   icons: {
     128: 'icon-128.png',
   },
@@ -41,11 +46,13 @@ const manifest = {
       // KEY for cache invalidation
       // css: ['assets/css/contentStyle<KEY>.chunk.css'],
     },
+
     {
       matches: ['http://*/*', 'https://*/*', '<all_urls>'],
       js: ['src/pages/contentUI/index.js'],
     },
   ],
+  host_permissions: ['<all_urls>'],
   devtools_page: 'src/pages/devtools/index.html',
   web_accessible_resources: [
     {

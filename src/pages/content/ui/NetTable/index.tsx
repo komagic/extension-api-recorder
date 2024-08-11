@@ -19,8 +19,8 @@ interface NetTableProps {
 
 const NetTable: React.FC<NetTableProps> = () => {
   const { state, dispatch } = useNetTable();
-  const startMock = record => {
-    dispatch({ type: Actions.START_MOCK, payload: { api: record.api } });
+  const startMock = (record, bol = true) => {
+    dispatch({ type: Actions.Toggle_mock, payload: { api: record.api, bol } });
   };
   const columns = [
     { title: '接口', dataIndex: 'api', key: 'api' },
@@ -30,8 +30,11 @@ const NetTable: React.FC<NetTableProps> = () => {
       dataIndex: 'status',
       key: 'status',
       width: 100,
-      render: (text, record) => {
-        return text;
+      render: (record, row) => {
+        <>
+          {record?.enable_mock && <Tag color="processing">正在mock</Tag>}
+          {record?.enable_record && <Tag color="error">正在记录</Tag>}
+        </>;
       },
     },
     {
@@ -89,7 +92,12 @@ const NetTable: React.FC<NetTableProps> = () => {
       render: (_, record) => {
         return (
           <div className="flex gap-3">
-            <BaseBtn onClick={() => startMock(record)}>开始mock</BaseBtn>
+            {!record?.enable_mock && <BaseBtn onClick={() => startMock(record, true)}>开始mock</BaseBtn>}
+            {record?.enable_mock && (
+              <BaseBtn danger onClick={() => startMock(record, false)}>
+                关闭mock
+              </BaseBtn>
+            )}
             <BaseBtn>开始录制</BaseBtn>
           </div>
         );
@@ -104,11 +112,15 @@ const NetTable: React.FC<NetTableProps> = () => {
 
   const dataSource = Object.entries(state.apis_map).map(([api, value]) => {
     return {
+      ...value,
       api,
-      status: value?.enable_mock || value?.enable_record || '-',
+      status: {
+        ...value,
+      },
       data: value?.data || '',
     };
   });
+  console.log('dataSource', dataSource);
 
   return (
     <>

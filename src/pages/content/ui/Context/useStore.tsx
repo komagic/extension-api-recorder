@@ -49,7 +49,7 @@ const initialState: IState = {
 export const Actions = {
   SET_DATA: 'SET_DATA',
   UPDATE_STATE: 'UPDATE_STATE',
-  START_MOCK: 'START_MOCK',
+  Toggle_mock: 'Toggle_mock',
 };
 
 const createApiMap = () => {
@@ -78,8 +78,8 @@ const syncSave = async (storeName, data) => {};
 const reducer = (s, action) => {
   let state = s;
   switch (action.type) {
-    case Actions.START_MOCK:
-      state.apis_map[action.payload.api].enable_mock = true;
+    case Actions.Toggle_mock:
+      state.apis_map[action.payload.api].enable_mock = action.payload.bol;
       break;
     case MessageNames.XHR:
       const url = action.url;
@@ -116,6 +116,8 @@ const reducer = (s, action) => {
 
     case Actions.UPDATE_STATE:
       state = { ...state, ...action.payload };
+      updateWindowStore(state);
+
       break;
     default:
       return state;

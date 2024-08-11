@@ -12,23 +12,23 @@ const sendResponseMessage = (url, data, type = 'XHR') => {
   );
 };
 
+const cache_name = '_api_recorder_';
+
+const getState = () => {
+  return window[cache_name];
+};
+
+const setState = state => {
+  window[cache_name] = state;
+};
+
 class RequestInterceptor {
   constructor() {
-    //  this.interceptXHR();
-    // this.addListeners();
+    this.addListeners();
+    this.interceptXHR();
+
     this.interceptFetch();
   }
-
-  // async getState() {
-  //   try {
-  //     // const state = await AppStore.load();
-  //     console.log('getState', state);
-
-  //     return state;
-  //   } catch (error) {
-  //     console.error('getState error', error);
-  //   }
-  // }
 
   getResponseByUrl(url, state) {
     let item = state.apis_map[url];
@@ -36,16 +36,18 @@ class RequestInterceptor {
   }
 
   addListeners() {
-    window.addEventListener('message', event => {
-      console.log('event.data', event.data);
-      if (event.type === 'update-store') {
-        window['__api_recorder_'] = event.data;
-        console.log('event.data', event.data);
+    window.addEventListener('message', ({ data }) => {
+      if (data.type === 'update-store') {
+        setState(data.data);
+        console.log('event.data:', data.data);
       }
     });
   }
 
   getConfig = (url, state) => {
+    if (!state) {
+      return;
+    }
     let item = state.apis_map[url];
     return item;
   };
@@ -55,41 +57,43 @@ class RequestInterceptor {
      * 如果有缓存且enable_mock为true，则直接返回缓存数据
      */
     const self = this;
-    // if (state.enable) {
-    //   xhook.enable();
-
-    // }else{
-    //   xhook.disable();
-    // }
 
     xhook.before(function (request, callback) {
       //   console.log("xhr request",request);
-      // const config = self.getConfig(request.url, state);
+      const state = getState();
+
+      const config = self.getConfig(request.url, state);
+      console.log('responseText', config);
+
       //如果存在mock
-      // if (config?.enable_mock) {
-      // const responseText = self.getResponseByUrl(request.url, state);
-      // console.log('_api_recorder_', window._api_recorder_);
-      //callback with a fake response
-      // callback({
-      //   status: 200,
-      //   text: responseText.replace('超级管理员', '222'),
-      // });
-      // }
+      if (config?.enable_mock) {
+        const responseText = self.getResponseByUrl(request.url, state);
+
+        callback({
+          status: 200,
+          text: responseText.replace('超级管理员', '222'),
+        });
+      } else {
+        callback();
+      }
     });
 
     xhook.after(function (request, response) {
       // const state = await self.getState();
-      return response;
-      // const config = self.getConfig(request.url, state);
-      // if (config?.enable_record && !config.enable_mock) {
-      //   if (response && response.status === 200) {
-      //     console.log('aaaaa', config);
+      const state = getState();
+      const config = self.getConfig(request.url, state);
+      console.log('xhook.after', config);
 
-      //     try {
-      //       return sendResponseMessage(request.url, response.body, 'XHR');
-      //     } catch (error) {}
-      //   }
-      // }
+      if (!config?.enable_record) {
+        if (response && response.status === 200) {
+          console.log('aaaaa', config);
+          try {
+            return sendResponseMessage(request.url, response.body, 'XHR');
+          } catch (error) {
+            console.error(' xhook.after: error', error);
+          }
+        }
+      }
     });
   };
 

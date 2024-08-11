@@ -53,8 +53,8 @@ export const Actions = {
 
 const createApiMap = () => {
   return {
-    enable_mock: true,
-    enable_record: false,
+    enable_mock: false,
+    enable_record: true,
     current: 0,
     data: [],
   };
@@ -62,10 +62,13 @@ const createApiMap = () => {
 
 const updateWindowStore = state => {
   // localStorage.setItem('__api_recorder__',JSON.stringify(state));
-  // window.postMessage({
-  //   type: 'update-store',
-  //   data: state,
-  // },window.location.href)
+  window.postMessage(
+    {
+      type: 'update-store',
+      data: state,
+    },
+    window.location.href,
+  );
   console.log('updateWindowStore', window.location.href);
 };
 
@@ -121,6 +124,7 @@ export const StoreProvider = ({ children }) => {
 
   const initData = async () => {
     const data = await dbStore.load();
+    updateWindowStore(data);
     dispatch({
       type: Actions.UPDATE_STATE,
       payload: data,

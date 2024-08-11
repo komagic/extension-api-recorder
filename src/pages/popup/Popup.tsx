@@ -5,15 +5,11 @@ import '@pages/popup/Popup.css';
 // import exampleThemeStorage from '@src/shared/storages/exampleThemeStorage';
 import withSuspense from '@src/shared/hoc/withSuspense';
 import withErrorBoundary from '@src/shared/hoc/withErrorBoundary';
-import Content from './content';
-import { Skeleton } from '@nextui-org/react';
 const Popup = () => {
   // const theme = useStorage(exampleThemeStorage);
 
   return (
     <div className="dark text-foreground bg-background h-screen">
-      <Content />
-
       {/* <button
           style={{
             backgroundColor: theme === 'light' ? '#fff' : '#000',
@@ -26,4 +22,4 @@ const Popup = () => {
   );
 };
 
-export default withErrorBoundary(withSuspense(Popup, <Skeleton> Loading ... </Skeleton>), <div> Error Occur </div>);
+export default withErrorBoundary(withSuspense(Popup, <div> Loading ... </div>), <div> Error Occur </div>);

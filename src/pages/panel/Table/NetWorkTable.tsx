@@ -378,10 +378,4 @@ const NetWorkTable = () => {
 };
 
 // eslint-disable-next-line react/display-name
-export default () => {
-  return (
-    <StoreProvider>
-      <NetWorkTable />
-    </StoreProvider>
-  );
-};
+export default NetWorkTable;

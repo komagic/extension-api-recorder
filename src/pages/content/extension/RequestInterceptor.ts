@@ -1,10 +1,12 @@
-import { data } from 'autoprefixer';
+// do not import
 
-const sendMessage = message => {
+import { default as xhook } from './main';
+const sendResponseMessage = (url, data, type = 'XHR') => {
   window.postMessage(
     {
-      type: 'apirecorder_xhr_response',
-      data: message,
+      type,
+      data: data,
+      url,
     },
     '*',
   );
@@ -12,43 +14,84 @@ const sendMessage = message => {
 
 class RequestInterceptor {
   constructor() {
-    this.interceptXHR();
+    //  this.interceptXHR();
+    // this.addListeners();
     this.interceptFetch();
   }
 
-  private interceptXHR() {
-    const originalXhrOpen = XMLHttpRequest.prototype.open;
-    const originalXhrSend = XMLHttpRequest.prototype.send;
+  // async getState() {
+  //   try {
+  //     // const state = await AppStore.load();
+  //     console.log('getState', state);
 
-    XMLHttpRequest.prototype.open = function (method: string, url: string) {
-      // 在这里你可以修改请求
-      console.log(`XHR Request Initiated: ${method} ${url}`);
-      // 可以修改请求的URL，或者保存请求数据
-      this.onreadystatechange = function () {
-        if (this.readyState === XMLHttpRequest.DONE) {
-          // console.log(`XHR Response: ${this.responseText}`);
+  //     return state;
+  //   } catch (error) {
+  //     console.error('getState error', error);
+  //   }
+  // }
 
-          try {
-            const path = new URL(window.location.origin + url)?.pathname;
-            const res = JSON.parse(this.responseText);
-            console.log('XHR Response:', this.responseText);
-            if (this.responseText) {
-              sendMessage(this.responseText);
-            }
-          } catch (error) {
-            console.error('XHR  error:', error);
-          }
-        }
-      };
-      originalXhrOpen.apply(this, arguments);
-    };
-
-    XMLHttpRequest.prototype.send = function (body?: Document | Body | null) {
-      // 在这里可以修改请求体
-      console.log('XHR Request Body:', body);
-      originalXhrSend.apply(this, arguments);
-    };
+  getResponseByUrl(url, state) {
+    let item = state.apis_map[url];
+    return item?.data[item?.current || 0];
   }
+
+  addListeners() {
+    window.addEventListener('message', event => {
+      console.log('event.data', event.data);
+      if (event.type === 'update-store') {
+        window['__api_recorder_'] = event.data;
+        console.log('event.data', event.data);
+      }
+    });
+  }
+
+  getConfig = (url, state) => {
+    let item = state.apis_map[url];
+    return item;
+  };
+
+  interceptXHR = async () => {
+    /**
+     * 如果有缓存且enable_mock为true，则直接返回缓存数据
+     */
+    const self = this;
+    // if (state.enable) {
+    //   xhook.enable();
+
+    // }else{
+    //   xhook.disable();
+    // }
+
+    xhook.before(function (request, callback) {
+      //   console.log("xhr request",request);
+      // const config = self.getConfig(request.url, state);
+      //如果存在mock
+      // if (config?.enable_mock) {
+      // const responseText = self.getResponseByUrl(request.url, state);
+      // console.log('_api_recorder_', window._api_recorder_);
+      //callback with a fake response
+      // callback({
+      //   status: 200,
+      //   text: responseText.replace('超级管理员', '222'),
+      // });
+      // }
+    });
+
+    xhook.after(function (request, response) {
+      // const state = await self.getState();
+      return response;
+      // const config = self.getConfig(request.url, state);
+      // if (config?.enable_record && !config.enable_mock) {
+      //   if (response && response.status === 200) {
+      //     console.log('aaaaa', config);
+
+      //     try {
+      //       return sendResponseMessage(request.url, response.body, 'XHR');
+      //     } catch (error) {}
+      //   }
+      // }
+    });
+  };
 
   private interceptFetch() {
     const originalFetch = window.fetch;
@@ -63,14 +106,12 @@ class RequestInterceptor {
         // 例如，添加一个自定义头
         headers: {
           ...(init?.headers ? init.headers : {}),
-          'X-Custom-Header': 'MyValue',
+          // 'X-Custom-Header': 'MyValue',
         },
       };
 
       const response = await originalFetch(input, modifiedInit);
-      let responseJson = {
-        data: 222,
-      };
+      let responseJson = null;
       // 在这里修改 body，返回一个mock body
 
       if (!responseJson) {

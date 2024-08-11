@@ -7,8 +7,6 @@ import { defineConfig } from 'vite';
 
 import path, { resolve } from 'path';
 
-import tailwindcss from 'tailwindcss';
-
 import { getCacheInvalidationKey, getPlugins } from './utils/vite';
 
 const rootDir = resolve(__dirname);
@@ -29,7 +27,7 @@ export default defineConfig({
   },
   css: {
     postcss: {
-      plugins: [tailwindcss, autoprefixer],
+      plugins: [autoprefixer],
     },
   },
   plugins: [...getPlugins(isDev), react()],

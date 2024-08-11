@@ -4,7 +4,8 @@ import { IStore, IAPIConfig } from './storeType';
 
 class StoreStorage {
   private storeName = 'APIRECORDER';
-  private storeData;
+  public storeData: IStore;
+  public version;
   private interval = 2000;
   constructor() {
     this.init();
@@ -33,8 +34,19 @@ class StoreStorage {
   }
 
   async init() {
-    this.storeData = await this.get();
+    this.storeData = (await this.get()) || this.initialStoreData();
+    console.log('storeData', this.storeData);
+
     this.startAutoSync(this.interval);
+  }
+
+  initialStoreData() {
+    return {
+      version: packagejson.version,
+      store: {},
+      enable: true,
+      storeName: this.storeName,
+    } as IStore;
   }
 
   async set<T>(obj: T): Promise<boolean> {

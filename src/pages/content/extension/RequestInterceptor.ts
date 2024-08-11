@@ -82,13 +82,11 @@ class RequestInterceptor {
       // const state = await self.getState();
       const state = getState();
       const config = self.getConfig(request.url, state);
-      console.log('xhook.after', config);
 
-      if (!config?.enable_record) {
+      if (config?.enable_record) {
         if (response && response.status === 200) {
-          console.log('aaaaa', config);
           try {
-            return sendResponseMessage(request.url, response.body, 'XHR');
+            return sendResponseMessage(request.url, response.data, 'XHR');
           } catch (error) {
             console.error(' xhook.after: error', error);
           }

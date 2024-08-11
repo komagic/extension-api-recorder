@@ -49,6 +49,7 @@ const initialState: IState = {
 export const Actions = {
   SET_DATA: 'SET_DATA',
   UPDATE_STATE: 'UPDATE_STATE',
+  START_MOCK: 'START_MOCK',
 };
 
 const createApiMap = () => {
@@ -74,8 +75,12 @@ const updateWindowStore = state => {
 
 const syncSave = async (storeName, data) => {};
 
-const reducer = (state, action) => {
+const reducer = (s, action) => {
+  let state = s;
   switch (action.type) {
+    case Actions.START_MOCK:
+      state.apis_map[action.payload.api].enable_mock = true;
+      break;
     case MessageNames.XHR:
       const url = action.url;
       if (!url) {
@@ -91,9 +96,7 @@ const reducer = (state, action) => {
         }
       }
       dbStore.save(state);
-
-      updateWindowStore(state);
-      return { ...state };
+      break;
 
     case Actions.SET_DATA:
       try {
@@ -109,14 +112,18 @@ const reducer = (state, action) => {
       } catch (error) {}
 
       dbStore.save(state);
-      updateWindowStore(state);
-      return { ...state };
+      break;
 
     case Actions.UPDATE_STATE:
-      return { ...state, ...action.payload };
+      state = { ...state, ...action.payload };
+      break;
     default:
       return state;
   }
+
+  state = { ...state };
+  updateWindowStore(state);
+  return state;
 };
 // 创建 StoreProvider 组件
 export const StoreProvider = ({ children }) => {
@@ -133,6 +140,24 @@ export const StoreProvider = ({ children }) => {
 
   useEffect(() => {
     initData();
+  }, []);
+
+  const handler = (e: MessageEvent<any>) => {
+    const { type, data, url } = e?.data;
+    console.log('useNetTabledata', data);
+
+    dispatch({
+      type: MessageNames.XHR,
+      payload: data,
+      url,
+    });
+  };
+
+  useEffect(() => {
+    window.addEventListener('message', handler);
+    return () => {
+      window.removeEventListener('message', handler);
+    };
   }, []);
 
   return <StoreContext.Provider value={{ state, dispatch }}>{children}</StoreContext.Provider>;

@@ -7,9 +7,9 @@ import {
   PlusCircleTwoTone,
   VideoCameraOutlined,
 } from '@ant-design/icons';
-import { Drawer, FloatButton, Table, Tabs } from 'antd';
+import { Drawer, FloatButton, Table, Tabs, Tag } from 'antd';
 import { JsonEditor } from 'json-edit-react';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Actions } from '../Context/useStore';
 import BaseBtn from './BaseBtn';
 import { useNetTable } from './useNetTable';
@@ -19,10 +19,21 @@ interface NetTableProps {
 
 const NetTable: React.FC<NetTableProps> = () => {
   const { state, dispatch } = useNetTable();
+  const startMock = record => {
+    dispatch({ type: Actions.START_MOCK, payload: { api: record.api } });
+  };
   const columns = [
     { title: '接口', dataIndex: 'api', key: 'api' },
     { title: '请求方式', dataIndex: 'method', key: 'method' },
-    { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      width: 100,
+      render: (text, record) => {
+        return text;
+      },
+    },
     {
       title: '数据',
       dataIndex: 'data',
@@ -78,7 +89,7 @@ const NetTable: React.FC<NetTableProps> = () => {
       render: (_, record) => {
         return (
           <div className="flex gap-3">
-            <BaseBtn>开始mock</BaseBtn>
+            <BaseBtn onClick={() => startMock(record)}>开始mock</BaseBtn>
             <BaseBtn>开始录制</BaseBtn>
           </div>
         );

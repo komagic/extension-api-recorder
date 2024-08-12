@@ -46,11 +46,12 @@ const initialState: IState = {
   enable: true,
   apis_map: {},
 };
-export const Actions = {
-  SET_DATA: 'SET_DATA',
-  UPDATE_STATE: 'UPDATE_STATE',
-  Toggle_mock: 'Toggle_mock',
-};
+export enum Actions {
+  SET_DATA,
+  UPDATE_STATE,
+  TOGGLE_MOCK,
+  TOGGLE_RECORD,
+}
 
 const createApiMap = () => {
   return {
@@ -78,9 +79,17 @@ const syncSave = async (storeName, data) => {};
 const reducer = (s, action) => {
   let state = s;
   switch (action.type) {
-    case Actions.Toggle_mock:
+    case Actions.TOGGLE_MOCK:
       state.apis_map[action.payload.api].enable_mock = action.payload.bol;
+      state.apis_map[action.payload.api].enable_record = !action.payload.bol;
       break;
+
+    case Actions.TOGGLE_RECORD:
+      state.apis_map[action.payload.api].enable_record = action.payload.bol;
+      state.apis_map[action.payload.api].enable_mock = !action.payload.bol;
+
+      break;
+
     case MessageNames.XHR:
       const url = action.url;
       if (!url) {

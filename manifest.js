@@ -16,9 +16,6 @@ const manifest = {
   version: packageJson.version,
   description: '__MSG_extensionDescription__',
   permissions: ['storage', 'clipboardRead', 'clipboardWrite', 'scripting'],
-  side_panel: {
-    default_path: 'src/pages/sidepanel/index.html',
-  },
   options_page: 'src/pages/options/index.html',
   background: {
     service_worker: 'src/pages/background/index.js',
@@ -28,9 +25,7 @@ const manifest = {
     default_popup: 'src/pages/popup/index.html',
     default_icon: 'icon-34.png',
   },
-  chrome_url_overrides: {
-    newtab: 'src/pages/newtab/index.html',
-  },
+
   externally_connectable: {
     matches: ['http://*/*', 'https://*/*', '<all_urls>'],
   },
@@ -44,7 +39,7 @@ const manifest = {
       js: ['src/pages/contentInjected/index.js'],
       run_at: 'document_start',
       // KEY for cache invalidation
-      // css: ['assets/css/contentStyle<KEY>.chunk.css'],
+      css: ['assets/css/contentStyle<KEY>.chunk.css'],
     },
 
     {
@@ -53,7 +48,6 @@ const manifest = {
     },
   ],
   host_permissions: ['<all_urls>'],
-  devtools_page: 'src/pages/devtools/index.html',
   web_accessible_resources: [
     {
       resources: ['assets/js/*.js', 'assets/css/*.css', 'icon-128.png', 'icon-34.png'],

@@ -1,8 +1,8 @@
+import config from '@root/tailwind.config';
+
 import { twind, cssom, observe } from '@twind/core';
 
 import 'construct-style-sheets-polyfill';
-
-import config from '../../../tailwind.config.ts';
 
 export function attachTwindStyle<T extends { adoptedStyleSheets: unknown }>(
   observedElement: Element,

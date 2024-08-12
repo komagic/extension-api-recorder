@@ -7,7 +7,7 @@ import {
   PlusCircleTwoTone,
   VideoCameraOutlined,
 } from '@ant-design/icons';
-import { Drawer, FloatButton, Table, Tabs, Tag } from 'antd';
+import { Badge, Drawer, FloatButton, Table, Tabs, Tag } from 'antd';
 import { JsonEditor } from 'json-edit-react';
 import React, { useCallback, useState } from 'react';
 import { Actions } from '../Context/useStore';
@@ -20,7 +20,7 @@ interface NetTableProps {
 const NetTable: React.FC<NetTableProps> = () => {
   const { state, dispatch } = useNetTable();
   const startMock = (record, bol = true) => {
-    dispatch({ type: Actions.Toggle_mock, payload: { api: record.api, bol } });
+    dispatch({ type: Actions.TOGGLE_MOCK, payload: { api: record.api, bol } });
   };
   const columns = [
     { title: '接口', dataIndex: 'api', key: 'api' },
@@ -29,12 +29,14 @@ const NetTable: React.FC<NetTableProps> = () => {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: 100,
+      width: 200,
       render: (record, row) => {
-        <>
-          {record?.enable_mock && <Tag color="processing">正在mock</Tag>}
-          {record?.enable_record && <Tag color="error">正在记录</Tag>}
-        </>;
+        return (
+          <>
+            {row?.enable_mock && <Badge status="processing" text="正在mock" />}
+            {row?.enable_record && <Badge status="error" text="正在记录" />}
+          </>
+        );
       },
     },
     {

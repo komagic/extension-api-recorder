@@ -63,14 +63,15 @@ class RequestInterceptor {
       const state = getState();
 
       const config = self.getConfig(request.url, state);
-      console.log('responseText', config);
 
       //如果存在mock
       if (config?.enable_mock) {
         const responseText = self.getResponseByUrl(request.url, state);
+        console.log('responseText', state);
+
         callback({
           status: 200,
-          text: responseText.replace('超级管理员', '222'),
+          text: responseText,
         });
       } else {
         callback();
@@ -81,7 +82,7 @@ class RequestInterceptor {
       // const state = await self.getState();
       const state = getState();
       const config = self.getConfig(request.url, state);
-      console.log(' xhook.after:', 'state', state, 'response', response);
+
       if (state?.enable && (!config?.enable_mock || !state?.apis_map?.[request.url])) {
         if (response && response.status === 200) {
           try {

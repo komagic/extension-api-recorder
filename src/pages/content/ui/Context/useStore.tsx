@@ -108,15 +108,11 @@ const reducer = (s, action) => {
       break;
 
     case Actions.SET_DATA:
+      const { data, index, api } = action.payload;
       try {
-        const url = action.api;
-        const index = action.index;
-        if (state?.apis_map?.[url]?.data?.[index]) {
-          state.apis_map[url].data[index] = action.data;
-          updateWindowStore(state);
-          return { ...state };
-        } else {
-          return state;
+        if (state?.apis_map[api]?.data?.[index]) {
+          state.apis_map[api].data[index] = data;
+          console.log('SET_DATA', state, state.apis_map[api], state?.apis_map[api]?.data?.[index]);
         }
       } catch (error) {}
 

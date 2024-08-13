@@ -27,6 +27,8 @@ document.body.append(styleElement);
  * In the firefox environment, the adoptedStyleSheets bug may prevent contentStyle from being applied properly.
  * Please refer to the PR link above and go back to the contentStyle.css implementation, or raise a PR if you have a better way to improve it.
  */
-createRoot(root).render(<App />);
+
+const the_root = createRoot(root);
+the_root.render(<App />);
 
 // createRoot(rootIntoShadow).render(<App />);

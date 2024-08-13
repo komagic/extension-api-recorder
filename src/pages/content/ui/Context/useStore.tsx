@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useReducer } from 'react';
 // import packagejson from 'package.json';
 import { MessageNames } from '@root/src/core/constants';
-import dbStore from './AppStore';
+import dbStore, { API_MAP_TYPE } from './AppStore';
 import { data } from 'autoprefixer';
 
 interface IDataItem {
@@ -18,14 +18,7 @@ export interface IState {
   version: string;
   store_name: string;
   enable: boolean;
-  apis_map: {
-    [key: string]: {
-      enable_mock: boolean;
-      enable_record: boolean;
-      current: number;
-      data: string[];
-    };
-  };
+  apis_map: API_MAP_TYPE;
 }
 
 // 定义 reducer 函数
@@ -51,14 +44,16 @@ export enum Actions {
   UPDATE_STATE,
   TOGGLE_MOCK,
   TOGGLE_RECORD,
+  TOGGLE_APP,
 }
 
-const createApiMap = () => {
+const createApiMap = (p = {}) => {
   return {
     enable_mock: false,
     enable_record: true,
     current: 0,
     data: [],
+    ...p,
   };
 };
 
@@ -79,6 +74,10 @@ const syncSave = async (storeName, data) => {};
 const reducer = (s, action) => {
   let state = s;
   switch (action.type) {
+    case Actions.TOGGLE_APP:
+      state.enable = !state.enable;
+      break;
+
     case Actions.TOGGLE_MOCK:
       state.apis_map[action.payload.api].enable_mock = action.payload.bol;
       state.apis_map[action.payload.api].enable_record = !action.payload.bol;
@@ -86,7 +85,9 @@ const reducer = (s, action) => {
 
     case Actions.TOGGLE_RECORD:
       state.apis_map[action.payload.api].enable_record = action.payload.bol;
-      state.apis_map[action.payload.api].enable_mock = !action.payload.bol;
+      if (action.payload.bol === true) {
+        state.apis_map[action.payload.api].enable_mock = false;
+      }
 
       break;
 
@@ -96,8 +97,11 @@ const reducer = (s, action) => {
         return state;
       }
       if (!state.apis_map[url]) {
-        state.apis_map[url] = createApiMap();
+        state.apis_map[url] = createApiMap({
+          method: MessageNames.XHR,
+        });
       } else {
+        state.apis_map[url].method = MessageNames.XHR;
         state.apis_map[url].data.push(action.payload);
         // 如果大于3
         while (state.apis_map[url].data.length > 3) {

@@ -2,18 +2,21 @@ import IndexedDBStore from './IndexedDBStore';
 
 const STORE_NAME = 'apirecorder';
 
+export type API_MAP_TYPE = {
+  [key: string]: {
+    method: 'xhr' | 'fetch';
+    enable_mock: boolean;
+    enable_record: boolean;
+    current: number;
+    data: string[];
+  };
+};
+
 export interface IState {
   version: string;
   store_name: string;
   enable: boolean;
-  apis_map: {
-    [key: string]: {
-      enable_mock: boolean;
-      enable_record: boolean;
-      current: number;
-      data: string[];
-    };
-  };
+  apis_map: API_MAP_TYPE;
 }
 class IndexedDBStateStore {
   private store: IndexedDBStore<IState>;
@@ -42,7 +45,7 @@ class IndexedDBStateStore {
 const stateStore = new IndexedDBStateStore('MyStateDatabase', STORE_NAME);
 
 const AppStore = {
-  save: async myState => stateStore.saveState(myState),
+  save: async (state: IState) => stateStore.saveState(state),
   load: async () => stateStore.loadState(),
   clear: async () => stateStore.removeState(),
 };

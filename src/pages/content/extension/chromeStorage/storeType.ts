@@ -35,7 +35,10 @@ export interface IAPIConfig {
    * 是否启用Mock
    */
   enable_mock: boolean;
-
+  /**
+   * xhr/fetch
+   */
+  method: string;
   /**
    * respoonsetext 缓存数据
    * */

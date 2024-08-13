@@ -1,30 +1,69 @@
 import {
+  BarChartOutlined,
+  CaretRightOutlined,
   CheckCircleTwoTone,
+  CheckOutlined,
   CloseCircleTwoTone,
+  CloseOutlined,
   CopyTwoTone,
   DeleteTwoTone,
   EditTwoTone,
+  PauseOutlined,
   PlusCircleTwoTone,
   VideoCameraOutlined,
+  VideoCameraTwoTone,
 } from '@ant-design/icons';
-import { Badge, Drawer, FloatButton, Table, Tabs, Tag } from 'antd';
+import { Badge, Button, Drawer, Flex, FloatButton, Switch, Table, Tabs, Tag, Tooltip } from 'antd';
 import { JsonEditor } from 'json-edit-react';
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { Actions } from '../Context/useStore';
 import BaseBtn from './BaseBtn';
 import { useNetTable } from './useNetTable';
+import { TableRowSelection } from 'antd/es/table/interface';
+import useAntdTable from './useAntdTable';
 interface NetTableProps {
   children?: React.ReactNode;
 }
 
 const NetTable: React.FC<NetTableProps> = () => {
   const { state, dispatch } = useNetTable();
+  const [loading, setLoading] = useState(false);
+  const [{ selectedRowKeys }, antdTableProps] = useAntdTable();
   const startMock = (record, bol = true) => {
     dispatch({ type: Actions.TOGGLE_MOCK, payload: { api: record.api, bol } });
   };
+
+  const toggleRecord = (record, bol = true) => {
+    dispatch({ type: Actions.TOGGLE_RECORD, payload: { api: record.api, bol } });
+  };
+  const toggleApp = record => {
+    dispatch({ type: Actions.TOGGLE_APP, payload: { api: record.api } });
+  };
   const columns = [
     { title: '接口', dataIndex: 'api', key: 'api' },
-    { title: '请求方式', dataIndex: 'method', key: 'method' },
+    {
+      title: '请求方式',
+      dataIndex: 'method',
+      key: 'method',
+      width: 100,
+      render: txt => {
+        const methods = new Map([
+          [
+            'XHR',
+            <Tag bordered={false} color="orange">
+              XHR
+            </Tag>,
+          ],
+          [
+            'FETCH',
+            <Tag bordered={false} color="cyan">
+              Fetch
+            </Tag>,
+          ],
+        ]);
+        return methods.get(txt);
+      },
+    },
     {
       title: '状态',
       dataIndex: 'status',
@@ -42,6 +81,7 @@ const NetTable: React.FC<NetTableProps> = () => {
     {
       title: '数据',
       dataIndex: 'data',
+      width: 400,
       key: 'data',
       render: (data, record) => {
         const items = data?.map((item, index) => {
@@ -75,7 +115,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                 }}
                 rootName="response "
                 data={parsed}
-                collapse={1}
+                collapse={0}
                 setData={setData}
               />
             ),
@@ -91,16 +131,25 @@ const NetTable: React.FC<NetTableProps> = () => {
     },
     {
       title: '操作',
+      width: 200,
+      fixed: 'right',
       render: (_, record) => {
         return (
-          <div className="flex gap-3">
-            {!record?.enable_mock && <BaseBtn onClick={() => startMock(record, true)}>开始mock</BaseBtn>}
-            {record?.enable_mock && (
-              <BaseBtn danger onClick={() => startMock(record, false)}>
-                关闭mock
-              </BaseBtn>
+          <div
+            style={{
+              display: 'flex',
+              gap: 4,
+            }}>
+            {!record?.enable_record && (
+              <Tooltip title="单条：开始记录">
+                <BaseBtn onClick={() => toggleRecord(record, true)} icon={<CaretRightOutlined />} type="primary" />
+              </Tooltip>
             )}
-            <BaseBtn>开始录制</BaseBtn>
+            {record?.enable_record && (
+              <Tooltip title="单条：停止记录">
+                <BaseBtn danger onClick={() => toggleRecord(record, false)} type="primary" icon={<PauseOutlined />} />
+              </Tooltip>
+            )}
           </div>
         );
       },
@@ -112,8 +161,21 @@ const NetTable: React.FC<NetTableProps> = () => {
     setVisible(!visible);
   };
 
+  const mockSelectedRows = () => {
+    selectedRowKeys.forEach(api => {
+      startMock({ api }, true);
+    });
+  };
+
+  const recordSelectedRows = () => {
+    selectedRowKeys.forEach(api => {
+      toggleRecord({ api }, true);
+    });
+  };
+
   const dataSource = Object.entries(state.apis_map).map(([api, value]) => {
     return {
+      key: api,
       ...value,
       api,
       status: {
@@ -124,6 +186,7 @@ const NetTable: React.FC<NetTableProps> = () => {
   });
   console.log('dataSource', dataSource);
 
+  const hasSelected = selectedRowKeys.length > 0;
   return (
     <>
       <FloatButton
@@ -134,12 +197,85 @@ const NetTable: React.FC<NetTableProps> = () => {
         icon={<VideoCameraOutlined />}
       />
       <Drawer
-        extra={<BaseBtn size="middle">启用</BaseBtn>}
-        title="API Recorder"
+        closeIcon={false}
+        bodyStyle={{
+          fontSize: 12,
+          display: 'flex',
+          flexDirection: 'column',
+
+          paddingTop: 0,
+        }}
+        extra={
+          <Tooltip title={state.enable ? '插件开启中' : '插件关闭中'}>
+            <Switch
+              value={state.enable}
+              onChange={toggleApp}
+              checkedChildren={<CheckOutlined />}
+              unCheckedChildren={<CloseOutlined />}
+            />
+          </Tooltip>
+        }
+        title={
+          <span
+            style={{
+              fontSize: 16,
+              lineHeight: '1rem',
+            }}>
+            API Recorder
+            <span style={{ marginLeft: 8 }}>
+              <VideoCameraTwoTone />
+            </span>
+          </span>
+        }
         placement="bottom"
         onClose={() => setVisible(false)}
         open={visible}>
-        <Table size="small" columns={columns} dataSource={dataSource} />
+        <>
+          <div
+            role="mask"
+            style={{
+              display: state.enable ? 'none' : 'block',
+              position: 'absolute',
+              background: 'rgba(255,255,255,0.4)',
+              width: '120%',
+              cursor: 'not-allowed',
+              marginLeft: -30,
+              height: '100%',
+              zIndex: 10000,
+            }}></div>
+          <div
+            style={{
+              display: 'flex',
+              padding: `12px 0`,
+              alignItems: 'center',
+              gap: 8,
+              position: 'sticky',
+              top: 0,
+              backgroundColor: '#fff',
+              zIndex: 1000,
+            }}>
+            <>
+              <BaseBtn
+                type="primary"
+                onClick={mockSelectedRows}
+                disabled={!hasSelected}
+                loading={loading}
+                icon={<BarChartOutlined />}>
+                一键mock
+              </BaseBtn>
+              <BaseBtn
+                onClick={recordSelectedRows}
+                disabled={!hasSelected}
+                danger
+                loading={loading}
+                icon={<CaretRightOutlined />}>
+                一键录制
+              </BaseBtn>
+              {hasSelected ? `已选择 ${selectedRowKeys.length} 个` : null}
+            </>
+          </div>
+          <Table columns={columns} dataSource={dataSource} {...antdTableProps} />
+        </>
       </Drawer>
     </>
   );

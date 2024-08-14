@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client';
 import App from '@root/src/pages/content/ui/app';
 import refreshOnUpdate from 'virtual:reload-on-update-in-view';
 import injectedStyle from './injected.css?inline';
-
+import { attachTwindStyle } from '@src/shared/style/twind';
 refreshOnUpdate('pages/content');
 const root = document.createElement('div');
 root.id = 'api-recorder-float-panel';
@@ -14,6 +14,8 @@ const styleElement = document.createElement('style');
 styleElement.innerHTML = injectedStyle;
 // root.appendChild(styleElement)
 document.body.append(styleElement);
+attachTwindStyle(root, document);
+// createRoot(rootIntoShadow).render(<App />);
 // const shadowRoot = root.attachShadow({ mode: 'open' });
 // shadowRoot.appendChild(rootIntoShadow);
 /** Inject styles into shadow dom */

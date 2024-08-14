@@ -10,10 +10,25 @@ import {
   EditTwoTone,
   PauseOutlined,
   PlusCircleTwoTone,
+  VideoCameraFilled,
   VideoCameraOutlined,
   VideoCameraTwoTone,
 } from '@ant-design/icons';
-import { Badge, Button, Drawer, Flex, FloatButton, Input, Switch, Table, Tabs, Tag, Tooltip, Typography } from 'antd';
+import {
+  Badge,
+  Button,
+  Drawer,
+  Flex,
+  FloatButton,
+  Form,
+  Input,
+  Switch,
+  Table,
+  Tabs,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd';
 import { JsonEditor } from 'json-edit-react';
 import React, { useState } from 'react';
 import { ACTIONS } from '../Context/useStore';
@@ -21,6 +36,7 @@ import BaseBtn from './BaseBtn';
 import { useNetTable } from './useNetTable';
 import { TableRowSelection } from 'antd/es/table/interface';
 import useAntdTable from './useAntdTable';
+import Resizer from './Resizer';
 interface NetTableProps {
   children?: React.ReactNode;
 }
@@ -216,102 +232,125 @@ const NetTable: React.FC<NetTableProps> = () => {
         onClick={handleClick}
         icon={<VideoCameraOutlined />}
       />
-      <Drawer
-        headerStyle={{
-          height: 48,
-        }}
-        closeIcon={false}
-        bodyStyle={{
-          fontSize: 12,
-          display: 'flex',
-          flexDirection: 'column',
-
-          paddingTop: 0,
-        }}
-        extra={
-          <Tooltip title={state.enable ? '插件开启中' : '插件关闭中'}>
-            <Switch
-              value={state.enable}
-              onChange={toggleApp}
-              checkedChildren={<CheckOutlined />}
-              unCheckedChildren={<CloseOutlined />}
-            />
-          </Tooltip>
-        }
-        title={
-          <span
-            style={{
-              fontSize: 16,
-              lineHeight: '1rem',
-            }}>
-            API Recorder
-            <span style={{ marginLeft: 8 }}>
-              <VideoCameraTwoTone />
-            </span>
-          </span>
-        }
-        placement="bottom"
-        onClose={() => setVisible(false)}
-        open={visible}>
-        <>
-          <div
-            role="mask"
-            style={{
-              display: state.enable ? 'none' : 'block',
-              position: 'absolute',
-              background: 'rgba(255,255,255,0.4)',
-              width: '120%',
-              cursor: 'not-allowed',
-              marginLeft: -30,
-              height: '100%',
-              zIndex: 10000,
-            }}></div>
-          <div
-            style={{
-              display: 'flex',
-              padding: `12px 0`,
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              position: 'sticky',
-              top: 0,
-              backgroundColor: '#fff',
-              zIndex: 1000,
-            }}>
-            <div
-              style={{
-                display: 'flex',
-                gap: 8,
-              }}>
-              <BaseBtn
-                type="primary"
-                onClick={mockSelectedRows}
-                disabled={!hasSelected}
-                loading={loading}
-                icon={<BarChartOutlined />}>
-                一键mock
-              </BaseBtn>
-              <BaseBtn
-                onClick={recordSelectedRows}
-                disabled={!hasSelected}
-                danger
-                loading={loading}
-                icon={<CaretRightOutlined />}>
-                一键录制
-              </BaseBtn>
-            </div>
-            <Input
-              placeholder="搜索"
-              variant="borderless"
-              style={{
-                alignSelf: 'center',
-                width: '30%',
+      <Resizer>
+        {({ height }) => {
+          return (
+            <Drawer
+              headerStyle={{
+                height: 48,
               }}
-            />
-            <span> {hasSelected ? `已选择 ${selectedRowKeys.length} 个` : null}</span>
-          </div>
-          <Table columns={columns} dataSource={dataSource} {...antdTableProps} />
-        </>
-      </Drawer>
+              height={height}
+              closeIcon={false}
+              bodyStyle={{
+                fontSize: 12,
+                display: 'flex',
+                flexDirection: 'column',
+
+                paddingTop: 0,
+              }}
+              extra={
+                <Tooltip title={state.enable ? '插件已开启' : '插件已关闭'}>
+                  <Switch
+                    value={state.enable}
+                    onChange={toggleApp}
+                    checkedChildren={<CheckOutlined />}
+                    unCheckedChildren={<CloseOutlined />}
+                  />
+                </Tooltip>
+              }
+              title={
+                <span
+                  style={{
+                    fontSize: 16,
+                    lineHeight: '1rem',
+                  }}>
+                  API Recorder
+                  <span style={{ marginLeft: 8 }}>
+                    <VideoCameraFilled />
+                  </span>
+                </span>
+              }
+              placement="bottom"
+              onClose={() => setVisible(false)}
+              open={visible}>
+              <>
+                <div
+                  role="mask"
+                  style={{
+                    display: state.enable ? 'none' : 'block',
+                    position: 'absolute',
+                    background: 'rgba(0,0,0,0.2)',
+                    width: '120%',
+                    cursor: 'not-allowed',
+                    marginLeft: -30,
+                    height: '100%',
+                    zIndex: 10000,
+                    backdropFilter: 'blur(1px)',
+                    transition: 'all .3s ease-in-out',
+                  }}></div>
+                <div
+                  style={{
+                    display: 'flex',
+                    padding: `12px 0`,
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1000,
+                    alignItems: 'center',
+                    backdropFilter: 'blur(5px)',
+                  }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 8,
+                      flex: 1,
+                    }}>
+                    <BaseBtn
+                      type="primary"
+                      onClick={mockSelectedRows}
+                      disabled={!hasSelected}
+                      loading={loading}
+                      icon={<BarChartOutlined />}>
+                      一键mock
+                    </BaseBtn>
+                    <BaseBtn
+                      onClick={recordSelectedRows}
+                      disabled={!hasSelected}
+                      danger
+                      loading={loading}
+                      icon={<CaretRightOutlined />}>
+                      一键录制
+                    </BaseBtn>
+                  </div>
+                  <Form
+                    style={{
+                      flex: 1,
+                      justifySelf: 'end',
+                    }}>
+                    <Form.Item label="筛选" style={{ margin: 0 }}>
+                      <Input
+                        placeholder="搜索"
+                        variant="borderless"
+                        style={{
+                          alignSelf: 'center',
+                          width: '200px',
+                        }}
+                      />
+                    </Form.Item>
+                  </Form>
+                  <div
+                    style={{
+                      width: 100,
+                    }}>
+                    {' '}
+                    {hasSelected ? `已选择 ${selectedRowKeys.length} 个` : null}
+                  </div>
+                </div>
+                <Table columns={columns} dataSource={dataSource} {...antdTableProps} />
+              </>
+            </Drawer>
+          );
+        }}
+      </Resizer>
     </>
   );
 };

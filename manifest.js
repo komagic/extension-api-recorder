@@ -39,7 +39,7 @@ const manifest = {
       js: ['src/pages/contentInjected/index.js'],
       run_at: 'document_start',
       // KEY for cache invalidation
-      css: ['assets/css/contentStyle<KEY>.chunk.css'],
+      // css: ['assets/css/contentStyle<KEY>.chunk.css'],
     },
 
     {

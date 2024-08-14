@@ -6,10 +6,10 @@ interface BaseBtnProps extends ButtonProps {
   children?: React.ReactNode;
 }
 
-const BaseBtn: React.FC<BaseBtnProps> = ({ children, ...rest }) => {
+const BaseBtn: React.FC<BaseBtnProps> = ({ children, disabled, ...rest }) => {
   const { state, dispatch } = useNetTable();
   return (
-    <Button size="small" {...rest} disabled={!state.enable}>
+    <Button size="small" {...rest} disabled={!state.enable || disabled}>
       {children}
     </Button>
   );

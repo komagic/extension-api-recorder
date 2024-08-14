@@ -39,7 +39,7 @@ const initialState: IState = {
   enable: true,
   apis_map: {},
 };
-export enum Actions {
+export enum ACTIONS {
   SET_DATA,
   UPDATE_STATE,
   TOGGLE_MOCK,
@@ -74,16 +74,17 @@ const syncSave = async (storeName, data) => {};
 const reducer = (s, action) => {
   let state = s;
   switch (action.type) {
-    case Actions.TOGGLE_APP:
-      state.enable = !state.enable;
+    case ACTIONS.TOGGLE_APP:
+      console.log('ACTIONS.TOGGLE_APP', action);
+      state.enable = action.payload;
       break;
 
-    case Actions.TOGGLE_MOCK:
+    case ACTIONS.TOGGLE_MOCK:
       state.apis_map[action.payload.api].enable_mock = action.payload.bol;
       state.apis_map[action.payload.api].enable_record = !action.payload.bol;
       break;
 
-    case Actions.TOGGLE_RECORD:
+    case ACTIONS.TOGGLE_RECORD:
       state.apis_map[action.payload.api].enable_record = action.payload.bol;
       if (action.payload.bol === true) {
         state.apis_map[action.payload.api].enable_mock = false;
@@ -108,10 +109,9 @@ const reducer = (s, action) => {
           state.apis_map[url].data.shift();
         }
       }
-      dbStore.save(state);
       break;
 
-    case Actions.SET_DATA:
+    case ACTIONS.SET_DATA:
       const { data, index, api } = action.payload;
       try {
         if (state?.apis_map[api]?.data?.[index]) {
@@ -123,7 +123,7 @@ const reducer = (s, action) => {
       dbStore.save(state);
       break;
 
-    case Actions.UPDATE_STATE:
+    case ACTIONS.UPDATE_STATE:
       state = { ...state, ...action.payload };
       updateWindowStore(state);
 
@@ -134,6 +134,7 @@ const reducer = (s, action) => {
 
   state = { ...state };
   updateWindowStore(state);
+  dbStore.save(state);
   return state;
 };
 // 创建 StoreProvider 组件
@@ -142,9 +143,10 @@ export const StoreProvider = ({ children }) => {
 
   const initData = async () => {
     const data = await dbStore.load();
+    console.log('initData', data);
     updateWindowStore(data);
     dispatch({
-      type: Actions.UPDATE_STATE,
+      type: ACTIONS.UPDATE_STATE,
       payload: data,
     });
   };

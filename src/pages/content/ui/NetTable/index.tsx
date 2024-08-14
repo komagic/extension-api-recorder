@@ -13,10 +13,10 @@ import {
   VideoCameraOutlined,
   VideoCameraTwoTone,
 } from '@ant-design/icons';
-import { Badge, Button, Drawer, Flex, FloatButton, Switch, Table, Tabs, Tag, Tooltip } from 'antd';
+import { Badge, Button, Drawer, Flex, FloatButton, Input, Switch, Table, Tabs, Tag, Tooltip, Typography } from 'antd';
 import { JsonEditor } from 'json-edit-react';
 import React, { useState } from 'react';
-import { Actions } from '../Context/useStore';
+import { ACTIONS } from '../Context/useStore';
 import BaseBtn from './BaseBtn';
 import { useNetTable } from './useNetTable';
 import { TableRowSelection } from 'antd/es/table/interface';
@@ -30,17 +30,37 @@ const NetTable: React.FC<NetTableProps> = () => {
   const [loading, setLoading] = useState(false);
   const [{ selectedRowKeys }, antdTableProps] = useAntdTable();
   const startMock = (record, bol = true) => {
-    dispatch({ type: Actions.TOGGLE_MOCK, payload: { api: record.api, bol } });
+    dispatch({ type: ACTIONS.TOGGLE_MOCK, payload: { api: record.api, bol } });
   };
 
   const toggleRecord = (record, bol = true) => {
-    dispatch({ type: Actions.TOGGLE_RECORD, payload: { api: record.api, bol } });
+    dispatch({ type: ACTIONS.TOGGLE_RECORD, payload: { api: record.api, bol } });
   };
-  const toggleApp = record => {
-    dispatch({ type: Actions.TOGGLE_APP, payload: { api: record.api } });
+  const toggleApp = bol => {
+    dispatch({ type: ACTIONS.TOGGLE_APP, payload: bol });
   };
   const columns = [
-    { title: '接口', dataIndex: 'api', key: 'api' },
+    {
+      title: '接口',
+      dataIndex: 'api',
+      key: 'api',
+      width: 250,
+
+      render: txt => {
+        return (
+          <Typography.Text
+            style={{
+              width: 250,
+            }}
+            copyable
+            ellipsis={{
+              tooltip: txt,
+            }}>
+            {txt}
+          </Typography.Text>
+        );
+      },
+    },
     {
       title: '请求方式',
       dataIndex: 'method',
@@ -91,7 +111,7 @@ const NetTable: React.FC<NetTableProps> = () => {
           } catch (error) {}
           const setData = data => {
             dispatch({
-              type: Actions.SET_DATA,
+              type: ACTIONS.SET_DATA,
               payload: {
                 api: record.api,
                 index,
@@ -131,7 +151,7 @@ const NetTable: React.FC<NetTableProps> = () => {
     },
     {
       title: '操作',
-      width: 200,
+      width: 120,
       fixed: 'right',
       render: (_, record) => {
         return (
@@ -197,6 +217,9 @@ const NetTable: React.FC<NetTableProps> = () => {
         icon={<VideoCameraOutlined />}
       />
       <Drawer
+        headerStyle={{
+          height: 48,
+        }}
         closeIcon={false}
         bodyStyle={{
           fontSize: 12,
@@ -248,13 +271,17 @@ const NetTable: React.FC<NetTableProps> = () => {
               display: 'flex',
               padding: `12px 0`,
               alignItems: 'center',
-              gap: 8,
+              justifyContent: 'space-between',
               position: 'sticky',
               top: 0,
               backgroundColor: '#fff',
               zIndex: 1000,
             }}>
-            <>
+            <div
+              style={{
+                display: 'flex',
+                gap: 8,
+              }}>
               <BaseBtn
                 type="primary"
                 onClick={mockSelectedRows}
@@ -271,8 +298,16 @@ const NetTable: React.FC<NetTableProps> = () => {
                 icon={<CaretRightOutlined />}>
                 一键录制
               </BaseBtn>
-              {hasSelected ? `已选择 ${selectedRowKeys.length} 个` : null}
-            </>
+            </div>
+            <Input
+              placeholder="搜索"
+              variant="borderless"
+              style={{
+                alignSelf: 'center',
+                width: '30%',
+              }}
+            />
+            <span> {hasSelected ? `已选择 ${selectedRowKeys.length} 个` : null}</span>
           </div>
           <Table columns={columns} dataSource={dataSource} {...antdTableProps} />
         </>

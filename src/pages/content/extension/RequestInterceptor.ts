@@ -58,6 +58,8 @@ class RequestInterceptor {
      */
     const self = this;
 
+    const state = getState();
+
     xhook.before(function (request, callback) {
       //   console.log("xhr request",request);
       const state = getState();
@@ -65,7 +67,7 @@ class RequestInterceptor {
       const config = self.getConfig(request.url, state);
 
       //如果存在mock
-      if (config?.enable_mock) {
+      if (state?.enable && config?.enable_mock) {
         const responseText = self.getResponseByUrl(request.url, state);
         console.log('responseText', state);
 

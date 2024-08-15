@@ -1,4 +1,5 @@
 import {
+  ApiOutlined,
   BarChartOutlined,
   CaretRightOutlined,
   CheckCircleTwoTone,
@@ -10,6 +11,7 @@ import {
   EditTwoTone,
   PauseOutlined,
   PlusCircleTwoTone,
+  ReloadOutlined,
   VideoCameraFilled,
   VideoCameraOutlined,
   VideoCameraTwoTone,
@@ -37,6 +39,7 @@ import { useNetTable } from './useNetTable';
 import { TableRowSelection } from 'antd/es/table/interface';
 import useAntdTable from './useAntdTable';
 import Resizer from './Resizer';
+import { debounce } from 'lodash';
 interface NetTableProps {
   children?: React.ReactNode;
 }
@@ -45,12 +48,16 @@ const NetTable: React.FC<NetTableProps> = () => {
   const { state, dispatch } = useNetTable();
   const [loading, setLoading] = useState(false);
   const [{ selectedRowKeys }, antdTableProps] = useAntdTable();
+  const [filter_api_value, set_filter_api_value] = useState('');
   const startMock = (record, bol = true) => {
     dispatch({ type: ACTIONS.TOGGLE_MOCK, payload: { api: record.api, bol } });
   };
 
   const toggleRecord = (record, bol = true) => {
-    dispatch({ type: ACTIONS.TOGGLE_RECORD, payload: { api: record.api, bol } });
+    dispatch({
+      type: ACTIONS.TOGGLE_RECORD,
+      payload: { api: record.api, bol },
+    });
   };
   const toggleApp = bol => {
     dispatch({ type: ACTIONS.TOGGLE_APP, payload: bol });
@@ -60,19 +67,34 @@ const NetTable: React.FC<NetTableProps> = () => {
       title: '接口',
       dataIndex: 'api',
       key: 'api',
-      width: 250,
-
-      render: txt => {
+      width: '40%',
+      render: text => {
+        let item = {};
+        try {
+          item = new URL(text);
+        } catch (error) {}
+        const regex = new RegExp(`(${filter_api_value})`, 'gi');
+        const parts = String(item?.pathname || text).split(regex);
         return (
           <Typography.Text
             style={{
-              width: 250,
+              width: '100%',
             }}
             copyable
             ellipsis={{
-              tooltip: txt,
+              tooltip: text,
             }}>
-            {txt}
+            <span>
+              {parts.map((part, index) =>
+                part?.toLowerCase() === filter_api_value?.toLowerCase() ? (
+                  <span key={index} style={{ color: '#fa541c' }}>
+                    {part}
+                  </span>
+                ) : (
+                  part
+                ),
+              )}
+            </span>
           </Typography.Text>
         );
       },
@@ -97,14 +119,20 @@ const NetTable: React.FC<NetTableProps> = () => {
             </Tag>,
           ],
         ]);
-        return methods.get(txt);
+        return (
+          methods.get(txt) || (
+            <Tag bordered={false} color="grey">
+              unknown
+            </Tag>
+          )
+        );
       },
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: 200,
+      width: 120,
       render: (record, row) => {
         return (
           <>
@@ -160,7 +188,9 @@ const NetTable: React.FC<NetTableProps> = () => {
         const onChange = (key: string) => {
           console.log(key);
         };
-        return (
+        return !items.length ? (
+          <Tag color="default">暂无数据</Tag>
+        ) : (
           <Tabs defaultActiveKey="1" items={items} onChange={onChange} indicator={{ size: origin => origin - 20 }} />
         );
       },
@@ -209,17 +239,21 @@ const NetTable: React.FC<NetTableProps> = () => {
     });
   };
 
-  const dataSource = Object.entries(state.apis_map).map(([api, value]) => {
-    return {
-      key: api,
-      ...value,
-      api,
-      status: {
+  const dataSource = Object.entries(state.apis_map)
+    .map(([api, value]) => {
+      return {
+        key: api,
         ...value,
-      },
-      data: value?.data || '',
-    };
-  });
+        api,
+        status: {
+          ...value,
+        },
+        data: value?.data || '',
+      };
+    })
+    .filter(row => {
+      return filter_api_value ? String(row?.api).includes(filter_api_value) : true;
+    });
   console.log('dataSource', dataSource);
 
   const hasSelected = selectedRowKeys.length > 0;
@@ -240,12 +274,14 @@ const NetTable: React.FC<NetTableProps> = () => {
                 height: 48,
               }}
               height={height}
+              style={{
+                transition: 'height 0s',
+              }}
               closeIcon={false}
               bodyStyle={{
                 fontSize: 12,
                 display: 'flex',
                 flexDirection: 'column',
-
                 paddingTop: 0,
               }}
               extra={
@@ -264,10 +300,10 @@ const NetTable: React.FC<NetTableProps> = () => {
                     fontSize: 16,
                     lineHeight: '1rem',
                   }}>
-                  API Recorder
-                  <span style={{ marginLeft: 8 }}>
+                  <span style={{ marginRight: 8 }}>
                     <VideoCameraFilled />
                   </span>
+                  API Recorder
                 </span>
               }
               placement="bottom"
@@ -291,7 +327,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                 <div
                   style={{
                     display: 'flex',
-                    padding: `12px 0`,
+                    padding: `16px 0`,
                     position: 'sticky',
                     top: 0,
                     zIndex: 1000,
@@ -301,6 +337,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                   <div
                     style={{
                       display: 'flex',
+                      alignItems: 'center',
                       gap: 8,
                       flex: 1,
                     }}>
@@ -320,6 +357,12 @@ const NetTable: React.FC<NetTableProps> = () => {
                       icon={<CaretRightOutlined />}>
                       一键录制
                     </BaseBtn>
+                    <div
+                      style={{
+                        width: 100,
+                      }}>
+                      {`已选择 ${selectedRowKeys.length} 个`}
+                    </div>
                   </div>
                   <Form
                     style={{
@@ -328,8 +371,11 @@ const NetTable: React.FC<NetTableProps> = () => {
                     }}>
                     <Form.Item label="筛选" style={{ margin: 0 }}>
                       <Input
-                        placeholder="搜索"
+                        allowClear
+                        placeholder="内容"
                         variant="borderless"
+                        onChange={debounce(e => set_filter_api_value(e.target.value))}
+                        value={filter_api_value}
                         style={{
                           alignSelf: 'center',
                           width: '200px',
@@ -337,12 +383,21 @@ const NetTable: React.FC<NetTableProps> = () => {
                       />
                     </Form.Item>
                   </Form>
+
                   <div
                     style={{
-                      width: 100,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
                     }}>
-                    {' '}
-                    {hasSelected ? `已选择 ${selectedRowKeys.length} 个` : null}
+                    <BaseBtn onClick={() => {}} loading={loading} icon={<ApiOutlined />}>
+                      录入规则
+                    </BaseBtn>
+                    <BaseBtn
+                      toolTip={'刷新页面'}
+                      onClick={() => window.location.reload()}
+                      loading={loading}
+                      icon={<ReloadOutlined />}></BaseBtn>
                   </div>
                 </div>
                 <Table columns={columns} dataSource={dataSource} {...antdTableProps} />

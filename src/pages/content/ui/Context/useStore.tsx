@@ -18,6 +18,9 @@ export interface IState {
   version: string;
   store_name: string;
   enable: boolean;
+
+  // 高度：
+  height: number;
   apis_map: API_MAP_TYPE;
 }
 
@@ -37,6 +40,7 @@ const initialState: IState = {
   version: '1.0.0',
   store_name: 'api_recorder',
   enable: true,
+  height: 0,
   apis_map: {},
 };
 export enum ACTIONS {
@@ -57,6 +61,15 @@ const createApiMap = (p = {}) => {
   };
 };
 
+const getUrlOriginPath = (url: string) => {
+  try {
+    const item = new URL(url);
+    return item.origin + item.pathname;
+  } catch (error) {
+    console.log('getUrlOriginPath:error', error);
+  }
+};
+
 const updateWindowStore = state => {
   // localStorage.setItem('__api_recorder__',JSON.stringify(state));
   window.postMessage(
@@ -72,7 +85,8 @@ const updateWindowStore = state => {
 const syncSave = async (storeName, data) => {};
 
 const reducer = (s, action) => {
-  let state = s;
+  let state = s,
+    url;
   switch (action.type) {
     case ACTIONS.TOGGLE_APP:
       console.log('ACTIONS.TOGGLE_APP', action);
@@ -93,7 +107,7 @@ const reducer = (s, action) => {
       break;
 
     case MessageNames.XHR:
-      const url = action.url;
+      url = action.url;
       if (!url) {
         return state;
       }
@@ -111,6 +125,25 @@ const reducer = (s, action) => {
       }
       break;
 
+    case MessageNames.FETCH:
+      url = getUrlOriginPath(action.url);
+      if (!url) {
+        return state;
+      }
+      if (!state.apis_map[url]) {
+        state.apis_map[url] = createApiMap({
+          method: MessageNames.FETCH,
+        });
+      } else {
+        state.apis_map[url].method = MessageNames.FETCH;
+        state.apis_map[url].data.push(action.payload);
+        // 如果大于3
+        while (state.apis_map[url].data.length > 3) {
+          state.apis_map[url].data.shift();
+        }
+      }
+      break;
+
     case ACTIONS.SET_DATA:
       const { data, index, api } = action.payload;
       try {
@@ -120,13 +153,10 @@ const reducer = (s, action) => {
         }
       } catch (error) {}
 
-      dbStore.save(state);
       break;
 
     case ACTIONS.UPDATE_STATE:
       state = { ...state, ...action.payload };
-      updateWindowStore(state);
-
       break;
     default:
       return state;
@@ -134,6 +164,7 @@ const reducer = (s, action) => {
 
   state = { ...state };
   updateWindowStore(state);
+  console.log(' dbStore.save', state);
   dbStore.save(state);
   return state;
 };
@@ -160,7 +191,7 @@ export const StoreProvider = ({ children }) => {
     console.log('useNetTabledata', data);
 
     dispatch({
-      type: MessageNames.XHR,
+      type: type,
       payload: data,
       url,
     });

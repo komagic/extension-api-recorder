@@ -19,18 +19,11 @@ function useAntdTable() {
     selectedRowKeys,
     onChange: onSelectChange,
   };
-  const [tableParams, setTableParams] = useState<TableParams>({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
-  });
+
   return [
     { selectedRowKeys },
     {
-      tableParams,
       rowSelection,
-      pagination: tableParams.pagination,
       rowKey: record => record.key,
     },
   ];

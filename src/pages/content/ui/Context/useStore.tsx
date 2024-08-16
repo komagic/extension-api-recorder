@@ -22,6 +22,13 @@ export interface IState {
   // 高度：
   height: number;
   apis_map: API_MAP_TYPE;
+
+  web_requests: {
+    [url in string]: any;
+  };
+
+  // 匹配规则
+  rules: string[];
 }
 
 // 定义 reducer 函数
@@ -41,6 +48,8 @@ const initialState: IState = {
   store_name: 'api_recorder',
   enable: true,
   height: 0,
+  rules: ['/api', '.json'],
+  web_requests: {},
   apis_map: {},
 };
 export enum ACTIONS {
@@ -49,6 +58,11 @@ export enum ACTIONS {
   TOGGLE_MOCK,
   TOGGLE_RECORD,
   TOGGLE_APP,
+  UPDATE_RULES,
+
+  UPDATE_REQUEST,
+
+  RESOLVE_REQUEST,
 }
 
 const createApiMap = (p = {}) => {
@@ -70,16 +84,65 @@ const getUrlOriginPath = (url: string) => {
   }
 };
 
+function isStringOrRegex(input) {
+  // 判断输入是否为字符串
+  if (typeof input === 'string') {
+    // 去掉首尾空格并检查格式
+    const trimmedInput = input.trim();
+
+    // 判断是否为正则表达式字符串
+    if (trimmedInput.startsWith('/') && trimmedInput.endsWith('/')) {
+      // 可以进一步验证中间部分，确保没有其他未转义的斜杠
+      const regexContent = trimmedInput.slice(1, -1);
+      if (!regexContent.includes('/')) {
+        return 'reg';
+      } else {
+        return 'string';
+      }
+    } else {
+      return 'string';
+    }
+  } else {
+    return null;
+  }
+}
+
+const enable_by_rules = (url, rules) => {
+  if (rules?.length < 1) {
+    return false;
+  }
+  return rules.some((str: string) => {
+    if (isStringOrRegex(str) === 'string') {
+      return url.indexOf(str) > -1;
+    } else if (isStringOrRegex(str) === 'reg') {
+      const regex = new RegExp(str.replaceAll('/', ''));
+      return regex.test(url);
+    }
+
+    return false;
+  });
+};
+
 const updateWindowStore = state => {
   // localStorage.setItem('__api_recorder__',JSON.stringify(state));
   window.postMessage(
     {
-      type: 'update-store',
+      type: 'inject:update-store',
       data: state,
     },
     window.location.href,
   );
   console.log('updateWindowStore', window.location.href);
+};
+
+const reloadRequest = url => {
+  window.postMessage(
+    {
+      type: 'inject:reload-request',
+      url: url,
+    },
+    window.location.href,
+  );
 };
 
 const syncSave = async (storeName, data) => {};
@@ -123,6 +186,16 @@ const reducer = (s, action) => {
           state.apis_map[url].data.shift();
         }
       }
+
+      // 根据rules规则,剔除不符合规则的内容
+      Object.keys(state.apis_map).forEach(url => {
+        const flag = enable_by_rules(url, state.rules);
+        console.log('flagflag', flag, url);
+        if (!flag) {
+          delete state.apis_map[url];
+        }
+      });
+
       break;
 
     case MessageNames.FETCH:
@@ -142,6 +215,24 @@ const reducer = (s, action) => {
           state.apis_map[url].data.shift();
         }
       }
+
+      // 根据rules规则,剔除不符合规则的内容
+      Object.keys(state.apis_map).forEach(url => {
+        const flag = enable_by_rules(url, state.rules);
+        console.log('flagflagFETCH', flag, url);
+        if (!flag) {
+          delete state.apis_map[url];
+        }
+      });
+
+      break;
+
+    // 注册request
+    case MessageNames.REQUEST:
+      console.log('MessageNames.REQUEST', action);
+
+      let request_url = action.url;
+      state.web_requests[request_url] = action.payload;
       break;
 
     case ACTIONS.SET_DATA:
@@ -154,7 +245,13 @@ const reducer = (s, action) => {
       } catch (error) {}
 
       break;
+    case ACTIONS.UPDATE_RULES:
+      const new_rules = action.payload;
+      state.rules = new_rules;
 
+    case ACTIONS.RESOLVE_REQUEST:
+      reloadRequest(action.payload.api);
+      return state;
     case ACTIONS.UPDATE_STATE:
       state = { ...state, ...action.payload };
       break;
@@ -188,8 +285,6 @@ export const StoreProvider = ({ children }) => {
 
   const handler = (e: MessageEvent<any>) => {
     const { type, data, url } = e?.data;
-    console.log('useNetTabledata', data);
-
     dispatch({
       type: type,
       payload: data,

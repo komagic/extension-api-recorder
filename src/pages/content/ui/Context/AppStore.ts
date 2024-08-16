@@ -1,4 +1,5 @@
 import IndexedDBStore from './IndexedDBStore';
+import { IState } from './useStore';
 
 const STORE_NAME = 'apirecorder';
 
@@ -7,17 +8,15 @@ export type API_MAP_TYPE = {
     method: 'xhr' | 'fetch';
     enable_mock: boolean;
     enable_record: boolean;
+    /**
+     * 当前使用数据指向
+     */
     current: number;
+
     data: string[];
   };
 };
 
-export interface IState {
-  version: string;
-  store_name: string;
-  enable: boolean;
-  apis_map: API_MAP_TYPE;
-}
 class IndexedDBStateStore {
   private store: IndexedDBStore<IState>;
 

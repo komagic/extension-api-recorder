@@ -2,37 +2,33 @@
 
 import { default as xhook } from './main';
 
-const whiteList = ['.alipay.net', '.json', '/campus'];
-const blackList = ['.min.js'];
-const enable_white_list = url => {
-  return whiteList.some(item => url.indexOf(item) > -1);
-};
+const cache_name = '_api_recorder_';
+const cache_requests = '_api_recorder_requests_';
 
-const disable_black_list = url => {
-  return blackList.some(str => !url.includes(str));
-};
+window[cache_requests] = {};
 
-const getOriginPath = (current_url: string): string => {
+export const getOriginPath = (current_url: string): string => {
   // 定义协议和域名
-  let url = current_url;
+  let url = current_url?.trim().split('?')[0];
   // 移除首尾的空格并处理不同的 URL格式
-  url = url.trim();
   if (url.startsWith('//')) {
     url = `${window.location.protocol}${url}`;
   } else if (url.startsWith('http')) {
     url = url;
   }
 
+  console.log('getOriginPath', url);
+
   try {
     // 提取路径
-    const urlObj = new URL(url);
-    // 使用规范的域名和协议构造新的 URL
-    return urlObj.origin + urlObj.pathname;
-  } catch (error) {}
+    return url;
+  } catch (error) {
+    console.error('getOriginPath:error', error);
+  }
   return url;
 };
 
-const sendResponseMessage = async (url, response, type = 'XHR') => {
+export const sendResponseMessage = async (url, response, type = 'XHR') => {
   if (type === 'FETCH') {
     response.text().then(function (text) {
       window.postMessage(
@@ -58,7 +54,14 @@ const sendResponseMessage = async (url, response, type = 'XHR') => {
   }
 };
 
-const cache_name = '_api_recorder_';
+const getRequests = () => {
+  return window[cache_requests];
+};
+export const registerRequest = request => {
+  const url = getOriginPath(request.url);
+  window[cache_requests][url] = request;
+  console.log('registerRequest', getRequests());
+};
 
 const getState = () => {
   return window[cache_name];
@@ -70,17 +73,18 @@ const setState = state => {
 
 const enable_save_response = (state, config, url) => {
   let apis_map = state?.apis_map || {};
-  if (!state?.enable) {
-    return false;
-  }
-
-  // enable when empty
-  if (Object.keys(apis_map)?.length === 0) {
+  if (!state) {
     return true;
   }
-
-  if (blackList.some(b => url.includes(b))) {
+  if (!state.enable) {
     return false;
+  }
+
+  const path = getOriginPath(url);
+
+  // enable when empty
+  if (apis_map && !apis_map[path]) {
+    return true;
   }
 
   if (config?.enable_record && config.enable_mock === false) {
@@ -106,8 +110,20 @@ class RequestInterceptor {
 
   addListeners() {
     window.addEventListener('message', ({ data }) => {
-      if (data.type === 'update-store') {
+      if (data.type === 'inject:update-store') {
         setState(data.data);
+      } else if (data.type === 'inject:reload-request') {
+        const url = data.url;
+        const requests_map = getRequests();
+
+        const req = requests_map[url];
+        console.log('reload request', req, url);
+
+        if (req?.isFetch) {
+          fetch(req.url, req);
+        } else if (req?.xhr) {
+          req.xhr.send();
+        }
       }
     });
   }
@@ -127,12 +143,12 @@ class RequestInterceptor {
      */
     const self = this;
 
-    const state = getState();
-
     xhook.before(function (request, callback) {
       //   console.log("xhr request",request);
+
       const state = getState();
 
+      registerRequest(request);
       const config = self.getConfig(request.url, state);
       //如果存在mock
       if (state?.enable && config?.enable_mock) {
@@ -150,14 +166,12 @@ class RequestInterceptor {
       const state = getState();
       const config = self.getConfig(request.url, state);
 
-      const matchRules = /.json/;
-
       // const enable_save_response = true||(enable_white_list(request.url) && disable_black_list(request.url));
       if (response.status === 204) {
         return;
       }
       const flag = enable_save_response(state, config, request.url);
-      console.log(flag, 'after: response', response, 'request:', request);
+      console.log(flag, 'after request:', request);
 
       // this enable record
       if (flag) {

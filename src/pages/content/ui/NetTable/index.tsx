@@ -42,6 +42,7 @@ import Resizer from './Resizer';
 import { debounce } from 'lodash';
 import useScroller from './useScroller';
 import classnames from 'classnames';
+import RuleGroups from './Rules';
 interface NetTableProps {
   children?: React.ReactNode;
 }
@@ -64,6 +65,18 @@ const NetTable: React.FC<NetTableProps> = () => {
   const toggleApp = bol => {
     dispatch({ type: ACTIONS.TOGGLE_APP, payload: bol });
   };
+
+  const resolveRequest = record => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+    }, 600);
+    dispatch({
+      type: ACTIONS.RESOLVE_REQUEST,
+      payload: { api: record.api },
+    });
+  };
+
   const columns = [
     {
       title: '接口',
@@ -76,20 +89,23 @@ const NetTable: React.FC<NetTableProps> = () => {
           item = new URL(text);
         } catch (error) {}
         const regex = new RegExp(`(${filter_api_value})`, 'gi');
-        const parts = String(item?.pathname || text).split(regex);
+        const parts = String(item?.origin + item?.pathname || text).split(regex);
         return (
           <Typography.Text
             style={{
               width: '100%',
             }}
-            copyable
+            copyable={{
+              text: text,
+            }}
             ellipsis={{
               tooltip: text,
+              expanded: true,
             }}>
             <span>
               {parts.map((part, index) =>
                 part?.toLowerCase() === filter_api_value?.toLowerCase() ? (
-                  <span key={index} style={{ color: '#fa541c' }}>
+                  <span key={index} style={{ color: '#e8b339' }}>
                     {part}
                   </span>
                 ) : (
@@ -102,7 +118,7 @@ const NetTable: React.FC<NetTableProps> = () => {
       },
     },
     {
-      title: '请求方式',
+      title: '请求',
       dataIndex: 'method',
       key: 'method',
       width: 100,
@@ -203,21 +219,21 @@ const NetTable: React.FC<NetTableProps> = () => {
       fixed: 'right',
       render: (_, record) => {
         return (
-          <div
-            style={{
-              display: 'flex',
-              gap: 4,
-            }}>
+          <div className="flex gap-2">
             {!record?.enable_record && (
               <Tooltip title="单条：开始记录">
-                <BaseBtn onClick={() => toggleRecord(record, true)} icon={<CaretRightOutlined />} type="primary" />
+                <BaseBtn onClick={() => toggleRecord(record, true)} icon={<CaretRightOutlined />} />
               </Tooltip>
             )}
             {record?.enable_record && (
               <Tooltip title="单条：停止记录">
-                <BaseBtn danger onClick={() => toggleRecord(record, false)} type="primary" icon={<PauseOutlined />} />
+                <BaseBtn danger onClick={() => toggleRecord(record, false)} icon={<PauseOutlined />} />
               </Tooltip>
             )}
+
+            <Tooltip title="单条：获取数据">
+              <BaseBtn loading={loading} onClick={() => resolveRequest(record)} icon={<ReloadOutlined />} />
+            </Tooltip>
           </div>
         );
       },
@@ -241,7 +257,7 @@ const NetTable: React.FC<NetTableProps> = () => {
     });
   };
 
-  const dataSource = Object.entries(state.apis_map)
+  const dataSource = Object.entries(state?.apis_map || {})
     .map(([api, value]) => {
       return {
         key: api,
@@ -288,6 +304,8 @@ const NetTable: React.FC<NetTableProps> = () => {
                 fontSize: 12,
                 display: 'flex',
                 flexDirection: 'column',
+                paddingLeft: 16,
+                paddingRight: 16,
                 paddingTop: 0,
               }}
               extra={
@@ -372,14 +390,12 @@ const NetTable: React.FC<NetTableProps> = () => {
                   </Form>
 
                   <div className="flex items-center gap-2">
-                    <BaseBtn onClick={() => {}} loading={loading} icon={<ApiOutlined />}>
+                    {/* <BaseBtn
+                  
+                    onClick={() => {}} loading={loading} icon={<ApiOutlined />}>
                       录入规则
-                    </BaseBtn>
-                    <BaseBtn
-                      toolTip={'刷新页面'}
-                      onClick={() => window.location.reload()}
-                      loading={loading}
-                      icon={<ReloadOutlined />}></BaseBtn>
+                    </BaseBtn> */}
+                    <RuleGroups />
                   </div>
                 </div>
                 <Table

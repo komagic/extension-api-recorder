@@ -1,15 +1,17 @@
-import { Button, ButtonProps, Tooltip } from 'antd';
+import { Button, ButtonProps, Tooltip, TooltipProps } from 'antd';
 import React, { useState } from 'react';
 import { useNetTable } from './useNetTable';
 
-interface BaseBtnProps extends ButtonProps {
-  children?: React.ReactNode;
-}
+type BaseBtnProps = ButtonProps &
+  TooltipProps & {
+    children?: React.ReactNode;
+    toolTip: string;
+  };
 
-const BaseBtn: React.FC<BaseBtnProps> = ({ children, disabled, toolTip = null, ...rest }) => {
+const BaseBtn: React.FC<BaseBtnProps> = ({ children, disabled, toolTip = null, placement = 'top', ...rest }) => {
   const { state, dispatch } = useNetTable();
   const wrapper = toolTip ? (
-    <Tooltip title={toolTip}>
+    <Tooltip title={toolTip} placement={placement}>
       <Button size="small" {...rest} disabled={!state.enable || disabled}>
         {children}
       </Button>

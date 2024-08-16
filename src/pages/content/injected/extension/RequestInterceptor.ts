@@ -1,32 +1,12 @@
 // do not import
 
-import { default as xhook } from './main';
+import { getOriginPath } from '@root/utils/http/getOriginPath';
 
+import { default as xhook } from './main';
 const cache_name = '_api_recorder_';
 const cache_requests = '_api_recorder_requests_';
 
 window[cache_requests] = {};
-
-export const getOriginPath = (current_url: string): string => {
-  // 定义协议和域名
-  let url = current_url?.trim().split('?')[0];
-  // 移除首尾的空格并处理不同的 URL格式
-  if (url.startsWith('//')) {
-    url = `${window.location.protocol}${url}`;
-  } else if (url.startsWith('http')) {
-    url = url;
-  }
-
-  console.log('getOriginPath', url);
-
-  try {
-    // 提取路径
-    return url;
-  } catch (error) {
-    console.error('getOriginPath:error', error);
-  }
-  return url;
-};
 
 export const sendResponseMessage = async (url, response, type = 'XHR') => {
   if (type === 'FETCH') {
@@ -41,8 +21,6 @@ export const sendResponseMessage = async (url, response, type = 'XHR') => {
       );
     });
   } else {
-    console.log('sendResponseMessage xhr', response.text);
-
     window.postMessage(
       {
         type,
@@ -117,7 +95,7 @@ class RequestInterceptor {
         const requests_map = getRequests();
 
         const req = requests_map[url];
-        console.log('reload request', req, url);
+        console.log('reload request', req, url, requests_map);
 
         if (req?.isFetch) {
           fetch(req.url, req);

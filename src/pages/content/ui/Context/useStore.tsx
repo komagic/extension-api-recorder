@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useReducer } from 'react';
 import { MessageNames } from '@root/src/core/constants';
 import dbStore, { API_MAP_TYPE } from './AppStore';
 import { data } from 'autoprefixer';
+import { matchesAnyRule } from '@root/utils/http/matchesAnyRule';
 
 interface IDataItem {
   // 接口路径
@@ -84,45 +85,6 @@ const getUrlOriginPath = (url: string) => {
   }
 };
 
-function isStringOrRegex(input) {
-  // 判断输入是否为字符串
-  if (typeof input === 'string') {
-    // 去掉首尾空格并检查格式
-    const trimmedInput = input.trim();
-
-    // 判断是否为正则表达式字符串
-    if (trimmedInput.startsWith('/') && trimmedInput.endsWith('/')) {
-      // 可以进一步验证中间部分，确保没有其他未转义的斜杠
-      const regexContent = trimmedInput.slice(1, -1);
-      if (!regexContent.includes('/')) {
-        return 'reg';
-      } else {
-        return 'string';
-      }
-    } else {
-      return 'string';
-    }
-  } else {
-    return null;
-  }
-}
-
-const enable_by_rules = (url, rules) => {
-  if (rules?.length < 1) {
-    return false;
-  }
-  return rules.some((str: string) => {
-    if (isStringOrRegex(str) === 'string') {
-      return url.indexOf(str) > -1;
-    } else if (isStringOrRegex(str) === 'reg') {
-      const regex = new RegExp(str.replaceAll('/', ''));
-      return regex.test(url);
-    }
-
-    return false;
-  });
-};
-
 const updateWindowStore = state => {
   // localStorage.setItem('__api_recorder__',JSON.stringify(state));
   window.postMessage(
@@ -189,7 +151,7 @@ const reducer = (s, action) => {
 
       // 根据rules规则,剔除不符合规则的内容
       Object.keys(state.apis_map).forEach(url => {
-        const flag = enable_by_rules(url, state.rules);
+        const flag = matchesAnyRule(url, state.rules);
         console.log('flagflag', flag, url);
         if (!flag) {
           delete state.apis_map[url];
@@ -218,7 +180,7 @@ const reducer = (s, action) => {
 
       // 根据rules规则,剔除不符合规则的内容
       Object.keys(state.apis_map).forEach(url => {
-        const flag = enable_by_rules(url, state.rules);
+        const flag = matchesAnyRule(url, state.rules);
         console.log('flagflagFETCH', flag, url);
         if (!flag) {
           delete state.apis_map[url];
@@ -248,7 +210,7 @@ const reducer = (s, action) => {
     case ACTIONS.UPDATE_RULES:
       const new_rules = action.payload;
       state.rules = new_rules;
-
+      break;
     case ACTIONS.RESOLVE_REQUEST:
       reloadRequest(action.payload.api);
       return state;

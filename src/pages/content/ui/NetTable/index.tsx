@@ -207,7 +207,9 @@ const NetTable: React.FC<NetTableProps> = () => {
           console.log(key);
         };
         return !items.length ? (
-          <Tag color="default">暂无数据</Tag>
+          <Tooltip title="单条：获取数据">
+            <BaseBtn size="large" loading={loading} onClick={() => resolveRequest(record)} icon={<ReloadOutlined />} />
+          </Tooltip>
         ) : (
           <Tabs defaultActiveKey="1" items={items} onChange={onChange} indicator={{ size: origin => origin - 20 }} />
         );
@@ -220,6 +222,9 @@ const NetTable: React.FC<NetTableProps> = () => {
       render: (_, record) => {
         return (
           <div className="flex gap-2">
+            <Tooltip title="单条：获取数据">
+              <BaseBtn loading={loading} onClick={() => resolveRequest(record)} icon={<ReloadOutlined />} />
+            </Tooltip>
             {!record?.enable_record && (
               <Tooltip title="单条：开始记录">
                 <BaseBtn onClick={() => toggleRecord(record, true)} icon={<CaretRightOutlined />} />
@@ -230,10 +235,6 @@ const NetTable: React.FC<NetTableProps> = () => {
                 <BaseBtn danger onClick={() => toggleRecord(record, false)} icon={<PauseOutlined />} />
               </Tooltip>
             )}
-
-            <Tooltip title="单条：获取数据">
-              <BaseBtn loading={loading} onClick={() => resolveRequest(record)} icon={<ReloadOutlined />} />
-            </Tooltip>
           </div>
         );
       },

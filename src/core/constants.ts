@@ -6,6 +6,7 @@ export const PortNames = {
 export const MessageNames = {
   XHR: 'XHR',
   FETCH: 'FETCH',
+  REQUEST: 'REQUEST',
 } as const;
 export type PortNameType = keyof typeof PortNames;
 

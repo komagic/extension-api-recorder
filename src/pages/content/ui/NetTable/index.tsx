@@ -32,7 +32,7 @@ import {
   Typography,
 } from 'antd';
 import { JsonEditor } from 'json-edit-react';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { ACTIONS } from '../Context/useStore';
 import BaseBtn from './BaseBtn';
 import { useNetTable } from './useNetTable';
@@ -40,6 +40,8 @@ import { TableRowSelection } from 'antd/es/table/interface';
 import useAntdTable from './useAntdTable';
 import Resizer from './Resizer';
 import { debounce } from 'lodash';
+import useScroller from './useScroller';
+import classnames from 'classnames';
 interface NetTableProps {
   children?: React.ReactNode;
 }
@@ -257,12 +259,16 @@ const NetTable: React.FC<NetTableProps> = () => {
   console.log('dataSource', dataSource);
 
   const hasSelected = selectedRowKeys.length > 0;
+
+  // scrollTop
+  const { isScrolled } = useScroller(document.querySelector('.apirecorder-drawer-body'));
+
   return (
     <>
       <FloatButton
         shape="circle"
         type="primary"
-        style={{ right: 94 }}
+        style={{ right: 94, insetInlineEnd: 24 + 70 + 70 }}
         onClick={handleClick}
         icon={<VideoCameraOutlined />}
       />
@@ -312,35 +318,16 @@ const NetTable: React.FC<NetTableProps> = () => {
               <>
                 <div
                   role="mask"
+                  className="absolute w-full cursor-not-allowed h-[100%] z-50 backdrop-blur-sm bg-[rgba(0,0,0,0.2)]"
                   style={{
-                    display: state.enable ? 'none' : 'block',
-                    position: 'absolute',
-                    background: 'rgba(0,0,0,0.2)',
-                    width: '120%',
-                    cursor: 'not-allowed',
+                    display: state?.enable ? 'none' : 'block',
                     marginLeft: -30,
-                    height: '100%',
-                    zIndex: 10000,
-                    backdropFilter: 'blur(1px)',
-                    transition: 'all .3s ease-in-out',
                   }}></div>
                 <div
-                  style={{
-                    display: 'flex',
-                    padding: `16px 0`,
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 1000,
-                    alignItems: 'center',
-                    backdropFilter: 'blur(5px)',
-                  }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      flex: 1,
-                    }}>
+                  className={classnames('flex p-4 gap-2 sticky top-0 z-[1000] items-center backdrop-blur-sm', {
+                    'shadow-lg': isScrolled,
+                  })}>
+                  <div className="flex gap-2 items-center">
                     <BaseBtn
                       type="primary"
                       onClick={mockSelectedRows}
@@ -384,12 +371,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                     </Form.Item>
                   </Form>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                    }}>
+                  <div className="flex items-center gap-2">
                     <BaseBtn onClick={() => {}} loading={loading} icon={<ApiOutlined />}>
                       录入规则
                     </BaseBtn>
@@ -400,7 +382,14 @@ const NetTable: React.FC<NetTableProps> = () => {
                       icon={<ReloadOutlined />}></BaseBtn>
                   </div>
                 </div>
-                <Table columns={columns} dataSource={dataSource} {...antdTableProps} />
+                <Table
+                  style={{
+                    transition: 'none!important',
+                  }}
+                  columns={columns}
+                  dataSource={dataSource}
+                  {...antdTableProps}
+                />
               </>
             </Drawer>
           );

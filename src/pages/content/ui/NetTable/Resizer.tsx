@@ -3,6 +3,7 @@ import { throttle } from 'lodash';
 import React from 'react';
 import { Resizable } from 'react-resizable';
 import { ACTIONS, useStore } from '../Context/useStore';
+import { useMemoizedFn } from 'ahooks';
 
 const ResizeHandle = React.forwardRef(({ handleAxis, ...props }, ref) => {
   return <div ref={ref} {...props} className={classnames(`handle-${handleAxis}`, `api-recorder-resize-handler`)}></div>;
@@ -13,18 +14,16 @@ const Resizer = ({ children }) => {
   const clientHeight = document.body.clientHeight;
   console.log('statestate', state);
 
-  const height = state.height || clientHeight / 2;
+  let height = state.height || clientHeight / 2;
 
   const onResize = throttle((e: any, direction: any, ref: any, d: any) => {
     /* resize 之前的值 */
-    window.requestAnimationFrame(() => {
-      const ratio = Math.min(Math.max(e.clientY / clientHeight, 0.05), 0.92);
-      const h = clientHeight * (1 - ratio);
 
-      dispatch({
-        type: ACTIONS.UPDATE_STATE,
-        payload: { height: h },
-      });
+    const ratio = Math.min(Math.max(e.clientY / clientHeight, 0.05), 0.92);
+    const h = Math.floor(clientHeight * (1 - ratio));
+    dispatch({
+      type: ACTIONS.UPDATE_STATE,
+      payload: { height: h },
     });
   });
 

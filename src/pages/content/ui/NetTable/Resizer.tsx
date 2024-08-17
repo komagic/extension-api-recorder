@@ -12,7 +12,6 @@ const ResizeHandle = React.forwardRef(({ handleAxis, ...props }, ref) => {
 const Resizer = ({ children, ...rest }: { children: (args: any) => any; [key in string]: any }) => {
   const { state, dispatch } = useStore();
   const clientHeight = document.body.clientHeight;
-  console.log('statestate', state);
 
   let height = state.height || clientHeight / 2;
 
@@ -21,10 +20,13 @@ const Resizer = ({ children, ...rest }: { children: (args: any) => any; [key in 
 
     const ratio = Math.min(Math.max(e.clientY / clientHeight, 0.05), 0.92);
     const h = Math.floor(clientHeight * (1 - ratio));
-    dispatch({
-      type: ACTIONS.UPDATE_STATE,
-      payload: { height: h },
-    });
+    if (height != h) {
+      console.log('resize', h);
+      dispatch({
+        type: ACTIONS.UPDATE_STATE,
+        payload: { height: h },
+      });
+    }
   });
 
   // 克隆子组件并传递额外的props

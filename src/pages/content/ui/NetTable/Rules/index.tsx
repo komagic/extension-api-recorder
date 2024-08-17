@@ -120,12 +120,7 @@ const RuleGroups: React.FC = () => {
         }
         const isLongTag = tag.length > 20;
         const tagElem = (
-          <CTag
-            key={tag}
-            closable={state?.enable}
-            color="magenta"
-            style={{ userSelect: 'none' }}
-            onClose={() => handleClose(tag)}>
+          <CTag key={tag} closable color="magenta" style={{ userSelect: 'none' }} onClose={() => handleClose(tag)}>
             <span
               onDoubleClick={e => {
                 if (index !== 0) {

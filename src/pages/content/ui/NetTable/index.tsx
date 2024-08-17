@@ -47,7 +47,7 @@ import classnames from 'classnames';
 import RuleGroups from './Rules';
 import { useMemo } from 'react';
 import { useMemoizedFn } from 'ahooks';
-import ResizablePanel from './ResizePanel';
+import { useEffect } from 'react';
 interface NetTableProps {
   children?: React.ReactNode;
 }
@@ -58,21 +58,24 @@ function JsonCustomerEditor(props) {
     parsed = JSON.parse(props.item);
   } catch (error) {}
   return (
-    <JsonEditor
-      theme={'default'}
-      icons={{
-        copy: <CopyTwoTone />,
-        edit: <EditTwoTone />,
-        delete: <DeleteTwoTone />,
-        add: <PlusCircleTwoTone />,
-        ok: <CheckCircleTwoTone />,
-        cancel: <CloseCircleTwoTone />,
-      }}
-      rootName="response "
-      data={parsed}
-      collapse={props.collapse || 0}
-      setData={props.setData}
-    />
+    <div onClick={e => e.stopPropagation()}>
+      <JsonEditor
+        theme={'default'}
+        icons={{
+          copy: <CopyTwoTone />,
+          edit: <EditTwoTone />,
+          delete: <DeleteTwoTone />,
+          add: <PlusCircleTwoTone />,
+          ok: <CheckCircleTwoTone />,
+          cancel: <CloseCircleTwoTone />,
+        }}
+        rootName="response "
+        data={parsed}
+        className="custom-json-editor"
+        collapse={props.collapse || 0}
+        setData={props.setData}
+      />
+    </div>
   );
 }
 
@@ -81,7 +84,6 @@ const NetTable: React.FC<NetTableProps> = () => {
   const [loading, setLoading] = useState(false);
   const [{ selectedRowKeys }, antdTableProps] = useAntdTable();
   const [filter_api_value, set_filter_api_value] = useState('');
-  const [current_record, set_current_record] = useState({});
   const startMock = (record, bol = true) => {
     dispatch({ type: ACTIONS.TOGGLE_MOCK, payload: { api: record.api, bol } });
   };
@@ -107,10 +109,10 @@ const NetTable: React.FC<NetTableProps> = () => {
     });
   };
 
-  const resolveRequest = record => {
+  const resolveRequest = (record, current = -1) => {
     return dispatch({
       type: ACTIONS.RESOLVE_REQUEST,
-      payload: { api: record.api },
+      payload: { api: record.api, current },
     });
   };
   const [childrenDrawer, setChildrenDrawer] = useState(false);
@@ -230,14 +232,16 @@ const NetTable: React.FC<NetTableProps> = () => {
               <Tooltip title="单条：获取数据">
                 <BaseBtn loading={loading} onClick={handleLoading} icon={<ReloadOutlined />} />
               </Tooltip>
-              <BaseBtn
-                icon={<EditOutlined />}
-                onClick={e => {
-                  e.stopPropagation();
-                  set_current_record(record);
-                  setChildrenDrawer(true);
-                }}
-              />
+              {data?.length && (
+                <BaseBtn
+                  icon={<EditOutlined />}
+                  onClick={e => {
+                    e.stopPropagation();
+                    setChildrenDrawer(true);
+                    set_current_api(record?.api);
+                  }}
+                />
+              )}
             </div>
           );
         };
@@ -323,7 +327,9 @@ const NetTable: React.FC<NetTableProps> = () => {
     .filter(row => {
       return filter_api_value ? String(row?.api).includes(filter_api_value) : true;
     });
-  console.log('dataSource', dataSource);
+
+  const [current_api, set_current_api] = useState(dataSource?.[0]?.api || '');
+  const current_record = dataSource.find(item => item?.api === current_api);
 
   const hasSelected = selectedRowKeys.length > 0;
 
@@ -350,18 +356,28 @@ const NetTable: React.FC<NetTableProps> = () => {
               style={{
                 transition: 'height 0s',
               }}
+              onClick={e => {
+                if (childrenDrawer) {
+                  setChildrenDrawer(false);
+                }
+              }}
               closeIcon={false}
-              bodyStyle={{
-                fontSize: 12,
-                display: 'flex',
-                flexDirection: 'column',
-                paddingLeft: 16,
-                paddingRight: 16,
-                paddingTop: 0,
+              styles={{
+                body: {
+                  fontSize: 12,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  paddingLeft: 16,
+                  paddingRight: 16,
+                  paddingTop: 0,
+                },
               }}
               extra={
                 <Tooltip title={state.enable ? '插件已开启' : '插件已关闭'}>
                   <Switch
+                    style={{
+                      transition: 'none',
+                    }}
                     value={state.enable}
                     onChange={toggleApp}
                     checkedChildren={<CheckOutlined />}
@@ -457,13 +473,14 @@ const NetTable: React.FC<NetTableProps> = () => {
                       }}
                       onRow={record => {
                         return {
-                          onDoubleClick: () => {
-                            if (current_record?.api != record?.api) {
+                          onDoubleClick: e => {
+                            e?.stopPropagation();
+                            if (record?.api !== current_api) {
+                              set_current_api(record?.api);
                               setChildrenDrawer(true);
                             } else {
                               setChildrenDrawer(!childrenDrawer);
                             }
-                            set_current_record(record);
                           },
                         };
                       }}
@@ -472,32 +489,57 @@ const NetTable: React.FC<NetTableProps> = () => {
                       {...antdTableProps}
                     />
                   </div>
-
-                  <div
-                    className="flex-1 min-w-0"
-                    style={{
-                      position: 'absolute',
-                      zIndex: 99,
-                      width: '50%',
-                      right: 0,
-                      height: '100%',
-                      transition: 'transform 0.4s',
-                      transform: childrenDrawer ? 'translateX(0)' : 'translateX(200%)',
-                    }}>
-                    <Card
-                      title={'接口：' + current_record?.api}
-                      extra={<CloseOutlined onClick={() => setChildrenDrawer(false)} />}
-                      className="h-full shadow-md"
-                      style={{ borderRadius: 0 }}>
-                      <div>
-                        <JsonCustomerEditor
-                          item={current_record?.data?.[current_record?.current]}
-                          collapse={3}
-                          setData={d => setData(d, current_record, current_record?.current)}
-                        />
+                </div>
+                <div
+                  onBlur={e => {
+                    console.log('onBlur', onblur);
+                    e.stopPropagation();
+                    setChildrenDrawer(false);
+                  }}
+                  onClick={e => {
+                    e.stopPropagation();
+                  }}
+                  className="flex-1 min-w-0"
+                  style={{
+                    position: 'absolute',
+                    zIndex: 99,
+                    width: '50%',
+                    right: 0,
+                    height: '100%',
+                    transition: 'transform 0.4s',
+                    transform: childrenDrawer ? 'translateX(0)' : 'translateX(120%)',
+                  }}>
+                  <Card
+                    title={'接口：' + current_record?.api}
+                    extra={<CloseOutlined onClick={() => setChildrenDrawer(false)} />}
+                    className="h-full shadow-md"
+                    style={{ borderRadius: 0 }}>
+                    <div>
+                      <div className="pb-4 flex gap-2">
+                        {!current_record?.enable_mock ? (
+                          <BaseBtn
+                            type="primary"
+                            onClick={() => startMock(current_record, true)}
+                            icon={<BarChartOutlined />}>
+                            模拟
+                          </BaseBtn>
+                        ) : (
+                          <BaseBtn
+                            type="primary"
+                            danger
+                            onClick={() => startMock(current_record, false)}
+                            icon={<BarChartOutlined />}>
+                            暂停
+                          </BaseBtn>
+                        )}
                       </div>
-                    </Card>
-                  </div>
+                      <JsonCustomerEditor
+                        item={current_record?.data?.[current_record?.current]}
+                        collapse={3}
+                        setData={d => setData(d, current_record, current_record?.current)}
+                      />
+                    </div>
+                  </Card>
                 </div>
               </>
             </Drawer>

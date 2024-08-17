@@ -11,12 +11,16 @@ async function toggleTheme() {
 
   script.id = XHR_ROOT;
   script.src = chrome.runtime.getURL('assets/js/xhr.js');
-  document.head.appendChild(script);
 
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = chrome.runtime.getURL('assets/css/contentStyle.chunk.css');
-  document.head.appendChild(link);
+  document.head.insertBefore(script, document.head.firstChild);
+
+  setTimeout(() => {
+    document.head.appendChild(link);
+  }, 0);
+
   // 使用拦截器
 
   // console.log('initial theme!', await exampleThemeStorage.get());

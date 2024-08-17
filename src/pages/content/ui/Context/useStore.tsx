@@ -62,6 +62,7 @@ const createApiMap = (p = {}) => {
     enable_record: true,
     current: 0,
     data: [],
+    responseHeaders: {},
     ...p,
   };
 };
@@ -131,8 +132,9 @@ const reducer = (s, action) => {
           method: MessageNames.XHR,
         });
       } else {
+        state.apis_map[url].responseHeaders = action.headers;
         state.apis_map[url].method = MessageNames.XHR;
-        state.apis_map[url].data.unshift(action.payload);
+        state.apis_map[url].data.push(action.payload);
         // 如果大于3
         while (state.apis_map[url].data.length > 3) {
           state.apis_map[url].data.pop();
@@ -159,6 +161,7 @@ const reducer = (s, action) => {
           method: MessageNames.FETCH,
         });
       } else {
+        state.apis_map[url].responseHeaders = action.headers;
         state.apis_map[url].method = MessageNames.FETCH;
         state.apis_map[url].data.push(action.payload);
         // 如果大于3
@@ -244,19 +247,20 @@ export const StoreProvider = ({ children }) => {
     initData();
   }, []);
 
-  const handler = (e: MessageEvent<any>) => {
-    const { type, data, url } = e?.data;
+  const xhrhandler = (e: MessageEvent<any>) => {
+    const { type, data, url, headers = {} } = e?.data;
     dispatch({
       type: type,
       payload: data,
+      headers,
       url,
     });
   };
 
   useEffect(() => {
-    window.addEventListener('message', handler);
+    window.addEventListener('message', xhrhandler);
     return () => {
-      window.removeEventListener('message', handler);
+      window.removeEventListener('message', xhrhandler);
     };
   }, []);
 

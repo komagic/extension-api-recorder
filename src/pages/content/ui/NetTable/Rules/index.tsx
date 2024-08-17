@@ -19,11 +19,7 @@ enum RuleType {
   Regex,
 }
 
-const CTag = ({ children, ...rest }) => (
-  <Tag className="text-sm" {...rest}>
-    {children}
-  </Tag>
-);
+const CTag = ({ children, ...rest }) => <Tag {...rest}>{children}</Tag>;
 
 const RuleGroups: React.FC = () => {
   const { state, dispatch } = useStore();

@@ -48,6 +48,7 @@ import RuleGroups from './Rules';
 import { useMemo } from 'react';
 import { useMemoizedFn } from 'ahooks';
 import { useEffect } from 'react';
+import { Z_INDEX_MAIN } from '@root/src/constant';
 interface NetTableProps {
   children?: React.ReactNode;
 }
@@ -355,6 +356,7 @@ const NetTable: React.FC<NetTableProps> = () => {
               height={height}
               style={{
                 transition: 'height 0s',
+                zIndex: Z_INDEX_MAIN,
               }}
               onClick={e => {
                 if (childrenDrawer) {
@@ -403,9 +405,9 @@ const NetTable: React.FC<NetTableProps> = () => {
               <>
                 <div
                   role="mask"
-                  className="absolute w-full cursor-not-allowed h-[100%] z-[101] backdrop-blur-sm bg-[rgba(0,0,0,0.2)]"
+                  className="absolute w-full cursor-not-allowed h-[100%] backdrop-blur-sm bg-[rgba(0,0,0,0.2)]"
                   style={{
-                    zIndex: 100,
+                    zIndex: Z_INDEX_MAIN + 2,
                     display: state?.enable ? 'none' : 'block',
                     marginLeft: -30,
                   }}></div>
@@ -471,19 +473,6 @@ const NetTable: React.FC<NetTableProps> = () => {
                       style={{
                         transition: 'none!important',
                       }}
-                      onRow={record => {
-                        return {
-                          onDoubleClick: e => {
-                            e?.stopPropagation();
-                            if (record?.api !== current_api) {
-                              set_current_api(record?.api);
-                              setChildrenDrawer(true);
-                            } else {
-                              setChildrenDrawer(!childrenDrawer);
-                            }
-                          },
-                        };
-                      }}
                       columns={columns}
                       dataSource={dataSource}
                       {...antdTableProps}
@@ -499,10 +488,10 @@ const NetTable: React.FC<NetTableProps> = () => {
                   onClick={e => {
                     e.stopPropagation();
                   }}
-                  className="flex-1 min-w-0"
+                  className=" flex-1 min-w-0"
                   style={{
                     position: 'absolute',
-                    zIndex: 99,
+                    zIndex: Z_INDEX_MAIN + 1,
                     width: '50%',
                     right: 0,
                     height: '100%',
@@ -532,6 +521,15 @@ const NetTable: React.FC<NetTableProps> = () => {
                             暂停
                           </BaseBtn>
                         )}
+
+                        <BaseBtn
+                          type="primary"
+                          disabled
+                          danger
+                          onClick={() => startMock(current_record, false)}
+                          icon={<BarChartOutlined />}>
+                          修改请求
+                        </BaseBtn>
                       </div>
                       <JsonCustomerEditor
                         item={current_record?.data?.[current_record?.current]}

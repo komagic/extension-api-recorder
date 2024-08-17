@@ -11,15 +11,15 @@ const ResizeHandle = React.forwardRef(({ handleAxis, ...props }, ref) => {
 
 const Resizer = ({ children, ...rest }: { children: (args: any) => any; [key in string]: any }) => {
   const { state, dispatch } = useStore();
-  const clientHeight = document.body.clientHeight;
+  const innerHeight = Math.min(window.innerHeight);
 
-  let height = state.height || clientHeight / 2;
+  let height = state.height || innerHeight / 2;
 
   const onResize = throttle((e: any, direction: any, ref: any, d: any) => {
     /* resize 之前的值 */
 
-    const ratio = Math.min(Math.max(e.clientY / clientHeight, 0.05), 0.92);
-    const h = Math.floor(clientHeight * (1 - ratio));
+    const ratio = Math.min(Math.max(e.clientY / innerHeight, 0.05), 0.92);
+    const h = Math.floor(innerHeight * (1 - ratio));
     if (height != h) {
       console.log('resize', h);
       dispatch({
@@ -37,7 +37,7 @@ const Resizer = ({ children, ...rest }: { children: (args: any) => any; [key in 
       width={Infinity}
       axis="y"
       minConstraints={[Infinity, 100]}
-      maxConstraints={[Infinity, clientHeight]}
+      maxConstraints={[Infinity, innerHeight]}
       handle={<ResizeHandle />}
       onResize={onResize}
       {...rest}>

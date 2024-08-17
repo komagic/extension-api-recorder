@@ -10,20 +10,26 @@ window[cache_requests] = {};
 
 export const sendResponseMessage = async (url, response, type = 'XHR') => {
   if (type === 'FETCH') {
+    console.log('FETCH::', response);
+
     response.text().then(function (text) {
       window.postMessage(
         {
           type,
           data: text,
+          headers: response.headers,
           url: getOriginPath(url),
         },
         '*',
       );
     });
   } else {
+    console.log('xhr::', response);
+
     window.postMessage(
       {
         type,
+        headers: response.headers,
         data: response.text,
         url: getOriginPath(url),
       },
@@ -37,8 +43,21 @@ const getRequests = () => {
 };
 export const registerRequest = request => {
   const url = getOriginPath(request.url);
-  window[cache_requests][url] = request;
-  console.log('registerRequest', getRequests());
+  console.log('registerRequest', cache_requests, url, window[cache_requests]);
+  if (!window[cache_requests][url]) {
+    window[cache_requests][url] = {
+      request: {},
+      response: {},
+    };
+  }
+  window[cache_requests][url + '']['request'] = request;
+};
+
+export const registerResponse = (response, api) => {
+  const url = getOriginPath(api);
+  console.log('registerResponse', url);
+
+  window[cache_requests][url].response = response;
 };
 
 const getState = () => {
@@ -94,8 +113,7 @@ class RequestInterceptor {
         const url = data.url;
         const requests_map = getRequests();
 
-        const req = requests_map[url];
-        console.log('reload request', req, url, requests_map);
+        const req = requests_map[url].request;
 
         if (req?.isFetch) {
           fetch(req.url, req);
@@ -130,21 +148,33 @@ class RequestInterceptor {
       const config = self.getConfig(request.url, state);
       //如果存在mock
       if (state?.enable && config?.enable_mock) {
+        const requests_map = getRequests();
+        const path = getOriginPath(request.url);
+        const headers = config.responseHeaders;
         const responseText = self.getResponseByUrl(request.url, state);
         if (request?.isFetch) {
           callback(new Response(new Blob([responseText])), {
-            headers: request.headers,
+            headers,
             status: 200,
-            statusText: 'OK',
+            statusText: 'OK from mock',
           });
         }
         if (request.xhr) {
-          callback({
-            headers: request.headers,
+          const res = {
+            headers: {
+              ...headers,
+              'access-control-allow-origin': '*',
+              'access-control-allow-credentials': true,
+            },
+            data: responseText,
             status: 200,
             statusText: 'OK',
             text: responseText,
-          });
+            response: responseText,
+            responseText: responseText,
+          };
+
+          callback(res);
         }
       }
 
@@ -164,6 +194,9 @@ class RequestInterceptor {
       // this enable record
       if (flag) {
         if (response && response.status === 200) {
+          registerResponse(response, request.url);
+          console.log('正常：response', response);
+
           try {
             if (request?.isFetch) {
               let cloneResponse = response.clone();

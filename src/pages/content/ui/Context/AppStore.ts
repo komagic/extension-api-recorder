@@ -12,7 +12,7 @@ export type API_MAP_TYPE = {
      * 当前使用数据指向
      */
     current: number;
-
+    responseHeaders: any;
     data: string[];
   };
 };

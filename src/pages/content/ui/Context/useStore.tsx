@@ -1,19 +1,8 @@
 import { createContext, useContext, useEffect, useReducer } from 'react';
-// import packagejson from 'package.json';
+import packagejson from '@root/package.json';
 import { MessageNames } from '@root/src/core/constants';
 import dbStore, { API_MAP_TYPE } from './AppStore';
-import { data } from 'autoprefixer';
 import { matchesAnyRule } from '@root/utils/http/matchesAnyRule';
-
-interface IDataItem {
-  // 接口路径
-  api: string;
-  // 状态
-  status: 'recording' | 'default' | 'mocking';
-
-  // 缓存返回数据，最大3个
-  list: Response[];
-}
 
 export interface IState {
   version: string;
@@ -45,7 +34,7 @@ interface IValue {
 }
 // 定义初始状态
 const initialState: IState = {
-  version: '1.0.0',
+  version: packagejson.version,
   store_name: 'api_recorder',
   enable: true,
   height: 0,

@@ -5,19 +5,13 @@ import '@pages/popup/Popup.css';
 // import exampleThemeStorage from '@src/shared/storages/exampleThemeStorage';
 import withSuspense from '@src/shared/hoc/withSuspense';
 import withErrorBoundary from '@src/shared/hoc/withErrorBoundary';
+import { Button } from 'antd';
 const Popup = () => {
   // const theme = useStorage(exampleThemeStorage);
 
   return (
     <div className="dark text-foreground bg-background h-screen">
-      {/* <button
-          style={{
-            backgroundColor: theme === 'light' ? '#fff' : '#000',
-            color:'var(--primary-color)'
-          }}
-          onClick={exampleThemeStorage.toggle}>
-          Toggle theme
-        </button> */}
+      <Button>启用</Button>
     </div>
   );
 };

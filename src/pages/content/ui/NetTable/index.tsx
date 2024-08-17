@@ -337,13 +337,14 @@ const NetTable: React.FC<NetTableProps> = () => {
               <>
                 <div
                   role="mask"
-                  className="absolute w-full cursor-not-allowed h-[100%] z-50 backdrop-blur-sm bg-[rgba(0,0,0,0.2)]"
+                  className="absolute w-full cursor-not-allowed h-[100%] z-[101] backdrop-blur-sm bg-[rgba(0,0,0,0.2)]"
                   style={{
+                    zIndex: 100,
                     display: state?.enable ? 'none' : 'block',
                     marginLeft: -30,
                   }}></div>
                 <div
-                  className={classnames('flex p-4 gap-2 sticky top-0 z-[1000] items-center backdrop-blur-sm', {
+                  className={classnames('flex p-4 gap-2 sticky top-0 z-[99] items-center backdrop-blur-sm', {
                     'shadow-lg': isScrolled,
                   })}>
                   <div className="flex gap-2 items-center">

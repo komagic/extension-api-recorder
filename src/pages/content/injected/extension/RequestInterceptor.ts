@@ -131,10 +131,21 @@ class RequestInterceptor {
       //如果存在mock
       if (state?.enable && config?.enable_mock) {
         const responseText = self.getResponseByUrl(request.url, state);
-        callback(new Response(new Blob([responseText])), {
-          status: 200,
-          statusText: 'OK',
-        });
+        if (request?.isFetch) {
+          callback(new Response(new Blob([responseText])), {
+            headers: request.headers,
+            status: 200,
+            statusText: 'OK',
+          });
+        }
+        if (request.xhr) {
+          callback({
+            headers: request.headers,
+            status: 200,
+            statusText: 'OK',
+            text: responseText,
+          });
+        }
       }
 
       callback();
@@ -149,7 +160,7 @@ class RequestInterceptor {
         return;
       }
       const flag = enable_save_response(state, config, request.url);
-      console.log(flag, 'after request:', request);
+      console.log(flag, 'after request:', request, response);
 
       // this enable record
       if (flag) {

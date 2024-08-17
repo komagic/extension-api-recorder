@@ -5,6 +5,7 @@ import { Flex, Input, Popconfirm, Popover, Tag, theme, Tooltip } from 'antd';
 import classnames from 'classnames';
 import BaseBtn from '../BaseBtn';
 import { ACTIONS, useStore } from '../../Context/useStore';
+import { DEFAULT_RULES } from '@root/src/constant';
 
 const tagInputStyle: React.CSSProperties = {
   width: 64,
@@ -23,8 +24,6 @@ const CTag = ({ children, ...rest }) => (
     {children}
   </Tag>
 );
-
-const defaultTags = ['/api', '.json'];
 
 const RuleGroups: React.FC = () => {
   const { state, dispatch } = useStore();
@@ -92,7 +91,7 @@ const RuleGroups: React.FC = () => {
   const handleRecover = () => {
     dispatch({
       type: ACTIONS.UPDATE_RULES,
-      payload: defaultTags,
+      payload: DEFAULT_RULES,
     });
   };
 
@@ -121,7 +120,12 @@ const RuleGroups: React.FC = () => {
         }
         const isLongTag = tag.length > 20;
         const tagElem = (
-          <CTag key={tag} closable color="magenta" style={{ userSelect: 'none' }} onClose={() => handleClose(tag)}>
+          <CTag
+            key={tag}
+            closable={state?.enable}
+            color="magenta"
+            style={{ userSelect: 'none' }}
+            onClose={() => handleClose(tag)}>
             <span
               onDoubleClick={e => {
                 if (index !== 0) {

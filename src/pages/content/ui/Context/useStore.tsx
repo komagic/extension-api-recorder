@@ -3,6 +3,7 @@ import packagejson from '@root/package.json';
 import { MessageNames } from '@root/src/core/constants';
 import dbStore, { API_MAP_TYPE } from './AppStore';
 import { matchesAnyRule } from '@root/utils/http/matchesAnyRule';
+import { DEFAULT_RULES } from '@root/src/constant';
 
 export interface IState {
   version: string;
@@ -38,7 +39,7 @@ const initialState: IState = {
   store_name: 'api_recorder',
   enable: true,
   height: 0,
-  rules: ['/api', '.json'],
+  rules: DEFAULT_RULES,
   web_requests: {},
   apis_map: {},
 };

@@ -1,4 +1,4 @@
-import { link } from 'fs';
+import { XHR_ROOT } from '@root/src/constant';
 
 import refreshOnUpdate from 'virtual:reload-on-update-in-view';
 
@@ -9,7 +9,7 @@ async function toggleTheme() {
   script.type = 'text/javascript';
   //  script.type = 'module';
 
-  // script.id = 'abbc';
+  script.id = XHR_ROOT;
   script.src = chrome.runtime.getURL('assets/js/xhr.js');
   document.body.appendChild(script);
 

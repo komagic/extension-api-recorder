@@ -2,12 +2,13 @@ import { createRoot } from 'react-dom/client';
 import App from '@root/src/pages/content/ui/app';
 import refreshOnUpdate from 'virtual:reload-on-update-in-view';
 import injectedStyle from './injected.css?inline';
+import { PANEL_ROOT } from '@root/src/constant';
 refreshOnUpdate('pages/content');
 const root = document.createElement('div');
-root.id = 'api-recorder-float-panel';
+root.id = PANEL_ROOT;
 document.body.append(root);
-const rootIntoShadow = document.createElement('div');
-rootIntoShadow.id = 'shadow-root';
+// const rootIntoShadow = document.createElement('div');
+// rootIntoShadow.id = 'shadow-root';
 const styleElement = document.createElement('style');
 
 styleElement.innerHTML = injectedStyle;

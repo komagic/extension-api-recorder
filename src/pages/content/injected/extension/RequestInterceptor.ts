@@ -160,7 +160,6 @@ class RequestInterceptor {
         return;
       }
       const flag = enable_save_response(state, config, request.url);
-      console.log(flag, 'after request:', request, response);
 
       // this enable record
       if (flag) {

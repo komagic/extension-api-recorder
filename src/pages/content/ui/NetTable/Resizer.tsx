@@ -9,7 +9,7 @@ const ResizeHandle = React.forwardRef(({ handleAxis, ...props }, ref) => {
   return <div ref={ref} {...props} className={classnames(`handle-${handleAxis}`, `api-recorder-resize-handler`)}></div>;
 });
 
-const Resizer = ({ children }) => {
+const Resizer = ({ children, ...rest }: { children: (args: any) => any; [key in string]: any }) => {
   const { state, dispatch } = useStore();
   const clientHeight = document.body.clientHeight;
   console.log('statestate', state);
@@ -37,7 +37,8 @@ const Resizer = ({ children }) => {
       minConstraints={[Infinity, 100]}
       maxConstraints={[Infinity, clientHeight]}
       handle={<ResizeHandle />}
-      onResize={onResize}>
+      onResize={onResize}
+      {...rest}>
       {children({ height })}
     </Resizable>
   );

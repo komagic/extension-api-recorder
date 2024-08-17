@@ -8,6 +8,7 @@ import {
   CloseOutlined,
   CopyTwoTone,
   DeleteTwoTone,
+  EditOutlined,
   EditTwoTone,
   PauseOutlined,
   PlusCircleTwoTone,
@@ -19,6 +20,7 @@ import {
 import {
   Badge,
   Button,
+  Card,
   Drawer,
   Flex,
   FloatButton,
@@ -43,8 +45,35 @@ import { debounce } from 'lodash';
 import useScroller from './useScroller';
 import classnames from 'classnames';
 import RuleGroups from './Rules';
+import { useMemo } from 'react';
+import { useMemoizedFn } from 'ahooks';
+import ResizablePanel from './ResizePanel';
 interface NetTableProps {
   children?: React.ReactNode;
+}
+
+function JsonCustomerEditor(props) {
+  let parsed = {};
+  try {
+    parsed = JSON.parse(props.item);
+  } catch (error) {}
+  return (
+    <JsonEditor
+      theme={'default'}
+      icons={{
+        copy: <CopyTwoTone />,
+        edit: <EditTwoTone />,
+        delete: <DeleteTwoTone />,
+        add: <PlusCircleTwoTone />,
+        ok: <CheckCircleTwoTone />,
+        cancel: <CloseCircleTwoTone />,
+      }}
+      rootName="response "
+      data={parsed}
+      collapse={props.collapse || 0}
+      setData={props.setData}
+    />
+  );
 }
 
 const NetTable: React.FC<NetTableProps> = () => {
@@ -52,6 +81,7 @@ const NetTable: React.FC<NetTableProps> = () => {
   const [loading, setLoading] = useState(false);
   const [{ selectedRowKeys }, antdTableProps] = useAntdTable();
   const [filter_api_value, set_filter_api_value] = useState('');
+  const [current_record, set_current_record] = useState({});
   const startMock = (record, bol = true) => {
     dispatch({ type: ACTIONS.TOGGLE_MOCK, payload: { api: record.api, bol } });
   };
@@ -66,15 +96,27 @@ const NetTable: React.FC<NetTableProps> = () => {
     dispatch({ type: ACTIONS.TOGGLE_APP, payload: bol });
   };
 
-  const resolveRequest = record => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 600);
+  const setData = (data, record, index) => {
     dispatch({
+      type: ACTIONS.SET_DATA,
+      payload: {
+        api: record.api,
+        index,
+        data: typeof data == 'string' ? data : JSON.stringify(data),
+      },
+    });
+  };
+
+  const resolveRequest = record => {
+    return dispatch({
       type: ACTIONS.RESOLVE_REQUEST,
       payload: { api: record.api },
     });
+  };
+  const [childrenDrawer, setChildrenDrawer] = useState(false);
+
+  const showChildrenDrawer = () => {
+    setChildrenDrawer(true);
   };
 
   const columns = [
@@ -167,51 +209,61 @@ const NetTable: React.FC<NetTableProps> = () => {
       key: 'data',
       render: (data, record) => {
         const items = data?.map((item, index) => {
-          let parsed = {};
-          try {
-            parsed = JSON.parse(item);
-          } catch (error) {}
-          const setData = data => {
-            dispatch({
-              type: ACTIONS.SET_DATA,
-              payload: {
-                api: record.api,
-                index,
-                data: typeof data == 'string' ? data : JSON.stringify(data),
-              },
-            });
-          };
           return {
             key: index,
             label: '备份' + (index + 1),
-            children: (
-              <JsonEditor
-                theme={'default'}
-                icons={{
-                  copy: <CopyTwoTone />,
-                  edit: <EditTwoTone />,
-                  delete: <DeleteTwoTone />,
-                  add: <PlusCircleTwoTone />,
-                  ok: <CheckCircleTwoTone />,
-                  cancel: <CloseCircleTwoTone />,
-                }}
-                rootName="response "
-                data={parsed}
-                collapse={0}
-                setData={setData}
-              />
-            ),
+            children: <JsonCustomerEditor item={item} setData={d => setData(d, record, index)} />,
           };
         });
+
+        const SingBtn = () => {
+          const [loading, setLoading] = useState(false);
+          const handleLoading = () => {
+            setLoading(true);
+            resolveRequest(record);
+            setTimeout(() => {
+              setLoading(false);
+            }, 600);
+          };
+          return (
+            <div className="flex gap-2">
+              <Tooltip title="单条：获取数据">
+                <BaseBtn loading={loading} onClick={handleLoading} icon={<ReloadOutlined />} />
+              </Tooltip>
+              <BaseBtn
+                icon={<EditOutlined />}
+                onClick={e => {
+                  e.stopPropagation();
+                  set_current_record(record);
+                  setChildrenDrawer(true);
+                }}
+              />
+            </div>
+          );
+        };
         const onChange = (key: string) => {
-          console.log(key);
+          dispatch({
+            type: ACTIONS.UPDATE_CURRENT,
+            payload: {
+              api: record?.api,
+              current: key,
+            },
+          });
         };
         return !items.length ? (
-          <Tooltip title="单条：获取数据">
-            <BaseBtn size="large" loading={loading} onClick={() => resolveRequest(record)} icon={<ReloadOutlined />} />
-          </Tooltip>
+          <SingBtn />
         ) : (
-          <Tabs defaultActiveKey="1" items={items} onChange={onChange} indicator={{ size: origin => origin - 20 }} />
+          <Tabs
+            activeKey={record?.current}
+            tabBarExtraContent={{
+              right: <SingBtn />,
+            }}
+            onEdit={() => {}}
+            defaultActiveKey="1"
+            items={items}
+            onChange={onChange}
+            indicator={{ size: origin => origin - 20 }}
+          />
         );
       },
     },
@@ -222,9 +274,6 @@ const NetTable: React.FC<NetTableProps> = () => {
       render: (_, record) => {
         return (
           <div className="flex gap-2">
-            <Tooltip title="单条：获取数据">
-              <BaseBtn loading={loading} onClick={() => resolveRequest(record)} icon={<ReloadOutlined />} />
-            </Tooltip>
             {!record?.enable_record && (
               <Tooltip title="单条：开始记录">
                 <BaseBtn onClick={() => toggleRecord(record, true)} icon={<CaretRightOutlined />} />
@@ -268,6 +317,7 @@ const NetTable: React.FC<NetTableProps> = () => {
           ...value,
         },
         data: value?.data || '',
+        loading: false,
       };
     })
     .filter(row => {
@@ -343,71 +393,112 @@ const NetTable: React.FC<NetTableProps> = () => {
                     display: state?.enable ? 'none' : 'block',
                     marginLeft: -30,
                   }}></div>
-                <div
-                  className={classnames('flex p-4 gap-2 sticky top-0 z-[99] items-center backdrop-blur-sm', {
-                    'shadow-lg': isScrolled,
-                  })}>
-                  <div className="flex gap-2 items-center">
-                    <BaseBtn
-                      type="primary"
-                      onClick={mockSelectedRows}
-                      disabled={!hasSelected}
-                      loading={loading}
-                      icon={<BarChartOutlined />}>
-                      一键mock
-                    </BaseBtn>
-                    <BaseBtn
-                      onClick={recordSelectedRows}
-                      disabled={!hasSelected}
-                      danger
-                      loading={loading}
-                      icon={<CaretRightOutlined />}>
-                      一键录制
-                    </BaseBtn>
+                <div role="main-content" className="flex w-full">
+                  <div role="main-content-table" className="flex-1 min-w-0">
                     <div
-                      style={{
-                        width: 100,
-                      }}>
-                      {`已选择 ${selectedRowKeys.length} 个`}
-                    </div>
-                  </div>
-                  <Form
-                    style={{
-                      flex: 1,
-                      justifySelf: 'end',
-                    }}>
-                    <Form.Item label="筛选" style={{ margin: 0 }}>
-                      <Input
-                        allowClear
-                        placeholder="内容"
-                        variant="borderless"
-                        onChange={debounce(e => set_filter_api_value(e.target.value))}
-                        value={filter_api_value}
+                      className={classnames('grid sticky p-2 top-0 z-[99] items-center backdrop-blur-sm', {
+                        'shadow-lg': isScrolled,
+                        'grid-cols-3 gap-2': true,
+                      })}>
+                      <div className="flex gap-2 items-center">
+                        <BaseBtn
+                          type="primary"
+                          onClick={mockSelectedRows}
+                          disabled={!hasSelected}
+                          loading={loading}
+                          icon={<BarChartOutlined />}>
+                          一键模拟
+                        </BaseBtn>
+                        <BaseBtn
+                          onClick={recordSelectedRows}
+                          disabled={!hasSelected}
+                          danger
+                          loading={loading}
+                          icon={<CaretRightOutlined />}>
+                          一键录制
+                        </BaseBtn>
+                        <div
+                          style={{
+                            width: 100,
+                          }}>
+                          {`已选择 ${selectedRowKeys.length} 个`}
+                        </div>
+                      </div>
+                      <Form
                         style={{
-                          alignSelf: 'center',
-                          width: '200px',
-                        }}
-                      />
-                    </Form.Item>
-                  </Form>
+                          flex: 1,
+                        }}>
+                        <Form.Item label="筛选" style={{ margin: 0 }}>
+                          <Input
+                            allowClear
+                            placeholder="内容"
+                            variant="borderless"
+                            onChange={debounce(e => set_filter_api_value(e.target.value))}
+                            value={filter_api_value}
+                            style={{
+                              width: '200px',
+                            }}
+                          />
+                        </Form.Item>
+                      </Form>
 
-                  <div className="flex items-center gap-2">
-                    {/* <BaseBtn
+                      <div className="flex items-center gap-2 justify-end">
+                        {/* <BaseBtn
                   
                     onClick={() => {}} loading={loading} icon={<ApiOutlined />}>
                       录入规则
                     </BaseBtn> */}
-                    <RuleGroups />
+                        <RuleGroups />
+                      </div>
+                    </div>
+                    <Table
+                      style={{
+                        transition: 'none!important',
+                      }}
+                      onRow={record => {
+                        return {
+                          onDoubleClick: () => {
+                            if (current_record?.api != record?.api) {
+                              setChildrenDrawer(true);
+                            } else {
+                              setChildrenDrawer(!childrenDrawer);
+                            }
+                            set_current_record(record);
+                          },
+                        };
+                      }}
+                      columns={columns}
+                      dataSource={dataSource}
+                      {...antdTableProps}
+                    />
+                  </div>
+
+                  <div
+                    className="flex-1 min-w-0"
+                    style={{
+                      position: 'absolute',
+                      zIndex: 99,
+                      width: '50%',
+                      right: 0,
+                      height: '100%',
+                      transition: 'transform 0.4s',
+                      transform: childrenDrawer ? 'translateX(0)' : 'translateX(200%)',
+                    }}>
+                    <Card
+                      title={'接口：' + current_record?.api}
+                      extra={<CloseOutlined onClick={() => setChildrenDrawer(false)} />}
+                      className="h-full shadow-md"
+                      style={{ borderRadius: 0 }}>
+                      <div>
+                        <JsonCustomerEditor
+                          item={current_record?.data?.[current_record?.current]}
+                          collapse={3}
+                          setData={d => setData(d, current_record, current_record?.current)}
+                        />
+                      </div>
+                    </Card>
                   </div>
                 </div>
-                <Table
-                  style={{
-                    transition: 'none!important',
-                  }}
-                  columns={columns}
-                  dataSource={dataSource}
-                  {...antdTableProps}
-                />
               </>
             </Drawer>
           );

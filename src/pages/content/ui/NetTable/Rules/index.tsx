@@ -102,7 +102,7 @@ const RuleGroups: React.FC = () => {
   };
 
   return (
-    <Flex gap="4px 0" wrap>
+    <Flex gap="4px 0" wrap align="end">
       {tags.map<React.ReactNode>((tag, index) => {
         if (editInputIndex === index) {
           return (

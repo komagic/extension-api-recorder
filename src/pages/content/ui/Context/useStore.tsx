@@ -50,7 +50,7 @@ export enum ACTIONS {
   TOGGLE_RECORD,
   TOGGLE_APP,
   UPDATE_RULES,
-
+  UPDATE_CURRENT,
   UPDATE_REQUEST,
 
   RESOLVE_REQUEST,
@@ -132,17 +132,16 @@ const reducer = (s, action) => {
         });
       } else {
         state.apis_map[url].method = MessageNames.XHR;
-        state.apis_map[url].data.push(action.payload);
+        state.apis_map[url].data.unshift(action.payload);
         // 如果大于3
         while (state.apis_map[url].data.length > 3) {
-          state.apis_map[url].data.shift();
+          state.apis_map[url].data.pop();
         }
       }
 
       // 根据rules规则,剔除不符合规则的内容
       Object.keys(state.apis_map).forEach(url => {
         const flag = matchesAnyRule(url, state.rules);
-        console.log('flagflag', flag, url);
         if (!flag) {
           delete state.apis_map[url];
         }
@@ -197,6 +196,16 @@ const reducer = (s, action) => {
       } catch (error) {}
 
       break;
+    case ACTIONS.UPDATE_CURRENT:
+      try {
+        const { api, current } = action.payload;
+        if (state?.apis_map[api]) {
+          state.apis_map[api].current = current;
+        }
+      } catch (error) {}
+
+      break;
+
     case ACTIONS.UPDATE_RULES:
       const new_rules = action.payload;
       state.rules = new_rules;

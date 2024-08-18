@@ -1,8 +1,5 @@
-type ColorType = 'success' | 'info' | 'error' | 'warning' | keyof typeof COLORS;
-type ValueOf<T> = T[keyof T];
-
-export default function colorLog(message: string, type: ColorType) {
-  let color: ValueOf<typeof COLORS>;
+export default function colorLog(message, type) {
+  let color;
 
   switch (type) {
     case 'success':
@@ -49,7 +46,7 @@ const COLORS = {
   BgMagenta: '\x1b[45m',
   BgCyan: '\x1b[46m',
   BgWhite: '\x1b[47m',
-} as const;
+};
 
 const KEY_DEBUG = 'api_recorder_debug';
 let is_debug_mode = false;

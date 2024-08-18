@@ -1,23 +1,13 @@
 // do not import
 
 import { getOriginPath } from '@root/utils/http/getOriginPath';
+import { logger } from '@root/utils/log';
 
 import { default as xhook } from './main';
-const cache_name = '_api_recorder_';
+const cache_state = '_api_recorder_';
 const cache_requests = '_api_recorder_requests_';
 
 window[cache_requests] = {};
-
-let deBuger = false;
-try {
-  deBuger = localStorage.getItem('app_recorder_debug');
-} catch (error) {}
-
-function logger(...args) {
-  if (deBuger) {
-    console.log(...args);
-  }
-}
 
 export const sendResponseMessage = async (url, response, type = 'XHR') => {
   if (type === 'FETCH') {
@@ -74,11 +64,11 @@ export const registerResponse = (response, api) => {
 };
 
 const getState = () => {
-  return window[cache_name];
+  return window[cache_state];
 };
 
 const setState = state => {
-  window[cache_name] = state;
+  window[cache_state] = state;
 };
 
 const enable_save_response = (state, config, url) => {

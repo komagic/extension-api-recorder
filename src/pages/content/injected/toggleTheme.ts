@@ -11,7 +11,7 @@ async function toggleTheme() {
 
   script.id = XHR_ROOT;
   script.src = chrome.runtime.getURL('assets/js/xhr.js');
-
+  script.type = 'module';
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = chrome.runtime.getURL('assets/css/contentStyle.chunk.css');

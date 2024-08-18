@@ -1,3 +1,5 @@
+import { logger } from '@root/utils/log';
+
 export const getOriginPath = (current_url: string): string => {
   // 定义协议和域名
   let url = current_url?.trim().split('?')[0];
@@ -8,7 +10,7 @@ export const getOriginPath = (current_url: string): string => {
     url = `${window.location.origin}${url}`;
   }
 
-  console.log('getOriginPath', url);
+  logger('getOriginPath', url);
 
   try {
     // 提取路径

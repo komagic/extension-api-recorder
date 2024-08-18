@@ -4,6 +4,7 @@ import { MessageNames } from '@root/src/core/constants';
 import dbStore, { API_MAP_TYPE } from './AppStore';
 import { matchesAnyRule } from '@root/utils/http/matchesAnyRule';
 import { DEFAULT_RULES } from '@root/src/constant';
+import { logger } from '@root/utils/log';
 
 export interface IState {
   version: string;
@@ -72,7 +73,7 @@ const getUrlOriginPath = (url: string) => {
     const item = new URL(url);
     return item.origin + item.pathname;
   } catch (error) {
-    console.log('getUrlOriginPath:error', error);
+    logger('getUrlOriginPath:error', error);
   }
 };
 
@@ -85,7 +86,7 @@ const updateWindowStore = state => {
     },
     window.location.href,
   );
-  console.log('updateWindowStore', window.location.href);
+  logger('updateWindowStore', window.location.href);
 };
 
 const reloadRequest = url => {
@@ -105,7 +106,7 @@ const reducer = (s, action) => {
     url;
   switch (action.type) {
     case ACTIONS.TOGGLE_APP:
-      console.log('ACTIONS.TOGGLE_APP', action);
+      logger('ACTIONS.TOGGLE_APP', action);
       state.enable = action.payload;
       break;
 
@@ -173,7 +174,6 @@ const reducer = (s, action) => {
       // 根据rules规则,剔除不符合规则的内容
       Object.keys(state.apis_map).forEach(url => {
         const flag = matchesAnyRule(url, state.rules);
-        console.log('flagflagFETCH', flag, url);
         if (!flag) {
           delete state.apis_map[url];
         }
@@ -183,7 +183,7 @@ const reducer = (s, action) => {
 
     // 注册request
     case MessageNames.REQUEST:
-      console.log('MessageNames.REQUEST', action);
+      logger('MessageNames.REQUEST', action);
 
       let request_url = action.url;
       state.web_requests[request_url] = action.payload;
@@ -194,7 +194,7 @@ const reducer = (s, action) => {
       try {
         if (state?.apis_map[api]?.data?.[index]) {
           state.apis_map[api].data[index] = data;
-          console.log('SET_DATA', state, state.apis_map[api], state?.apis_map[api]?.data?.[index]);
+          logger('SET_DATA', state, state.apis_map[api], state?.apis_map[api]?.data?.[index]);
         }
       } catch (error) {}
 
@@ -225,7 +225,7 @@ const reducer = (s, action) => {
 
   state = { ...state };
   updateWindowStore(state);
-  console.log(' dbStore.save', state);
+  logger(' dbStore.save', state);
   dbStore.save(state);
   return state;
 };
@@ -235,7 +235,7 @@ export const StoreProvider = ({ children }) => {
 
   const initData = async () => {
     const data = await dbStore.load();
-    console.log('initData', data);
+    logger('initData', data);
     updateWindowStore(data);
     dispatch({
       type: ACTIONS.UPDATE_STATE,

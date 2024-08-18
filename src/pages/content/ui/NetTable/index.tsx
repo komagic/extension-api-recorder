@@ -17,7 +17,21 @@ import {
   VideoCameraOutlined,
 } from '@ant-design/icons';
 import { Z_INDEX_MAIN } from '@root/src/constant';
-import { Badge, Card, Drawer, FloatButton, Form, Input, Switch, Table, Tabs, Tag, Tooltip, Typography } from 'antd';
+import {
+  Badge,
+  Card,
+  Drawer,
+  FloatButton,
+  Form,
+  Input,
+  Switch,
+  Table,
+  Tabs,
+  Tag,
+  Tooltip,
+  Typography,
+  Segmented,
+} from 'antd';
 import classnames from 'classnames';
 import { JsonEditor } from 'json-edit-react';
 import { debounce } from 'lodash';
@@ -29,35 +43,12 @@ import RuleGroups from './Rules';
 import useAntdTable from './useAntdTable';
 import { useNetTable } from './useNetTable';
 import useScroller from './useScroller';
+import { logger } from '@root/utils/log';
+import PanelDetail from './PanelDetail';
+import JsonCustomerEditor from './JsonCustomerEditor';
+
 interface NetTableProps {
   children?: React.ReactNode;
-}
-
-function JsonCustomerEditor(props) {
-  let parsed = {};
-  try {
-    parsed = JSON.parse(props.item);
-  } catch (error) {}
-  return (
-    <div onClick={e => e.stopPropagation()}>
-      <JsonEditor
-        theme={'default'}
-        icons={{
-          copy: <CopyTwoTone />,
-          edit: <EditTwoTone />,
-          delete: <DeleteTwoTone />,
-          add: <PlusCircleTwoTone />,
-          ok: <CheckCircleTwoTone />,
-          cancel: <CloseCircleTwoTone />,
-        }}
-        rootName="response "
-        data={parsed}
-        className="custom-json-editor"
-        collapse={props.collapse || 0}
-        setData={props.setData}
-      />
-    </div>
-  );
 }
 
 const NetTable: React.FC<NetTableProps> = () => {
@@ -369,9 +360,9 @@ const NetTable: React.FC<NetTableProps> = () => {
                       unCheckedChildren={<CloseOutlined />}
                     />
                   </Tooltip>
-                  <Tooltip title={state.enable ? '插件已开启' : '插件已关闭'}>
+                  {/* <Tooltip title={state.enable ? '插件已开启' : '插件已关闭'}>
                     <BaseBtn icon={<SettingOutlined />} />
-                  </Tooltip>
+                  </Tooltip> */}
                 </div>
               }
               title={
@@ -406,7 +397,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                     <div
                       className={classnames('grid sticky p-2 top-0 z-[99] items-center backdrop-blur-sm', {
                         'shadow-lg': isScrolled,
-                        'grid-cols-3 gap-2': true,
+                        'grid-cols-3 gap-[8px]': true,
                       })}>
                       <div className="flex gap-2 items-center">
                         <BaseBtn
@@ -450,7 +441,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                         </Form.Item>
                       </Form>
 
-                      <div className="flex items-center gap-2 justify-end">
+                      <div className="flex items-center gap-[8px] justify-end">
                         {/* <BaseBtn
                   
                     onClick={() => {}} loading={loading} icon={<ApiOutlined />}>
@@ -469,67 +460,13 @@ const NetTable: React.FC<NetTableProps> = () => {
                     />
                   </div>
                 </div>
-                <div
-                  onBlur={e => {
-                    console.log('onBlur', onblur);
-                    e.stopPropagation();
-                    setChildrenDrawer(false);
-                  }}
-                  onClick={e => {
-                    e.stopPropagation();
-                  }}
-                  className=" flex-1 min-w-0"
-                  style={{
-                    position: 'absolute',
-                    zIndex: Z_INDEX_MAIN + 1,
-                    width: '50%',
-                    right: 0,
-                    top: 0,
-                    height: '100%',
-                    transition: 'transform 0.4s',
-                    transform: childrenDrawer ? 'translateX(0)' : 'translateX(120%)',
-                  }}>
-                  <Card
-                    title={'接口：' + current_record?.api}
-                    extra={<CloseOutlined onClick={() => setChildrenDrawer(false)} />}
-                    className="h-full shadow-md"
-                    style={{ borderRadius: 0 }}>
-                    <div>
-                      <div className="pb-4 flex gap-2">
-                        {!current_record?.enable_mock ? (
-                          <BaseBtn
-                            type="primary"
-                            onClick={() => startMock(current_record, true)}
-                            icon={<BarChartOutlined />}>
-                            模拟
-                          </BaseBtn>
-                        ) : (
-                          <BaseBtn
-                            type="primary"
-                            danger
-                            onClick={() => startMock(current_record, false)}
-                            icon={<BarChartOutlined />}>
-                            暂停
-                          </BaseBtn>
-                        )}
-
-                        <BaseBtn
-                          type="primary"
-                          disabled
-                          danger
-                          onClick={() => startMock(current_record, false)}
-                          icon={<BarChartOutlined />}>
-                          修改请求
-                        </BaseBtn>
-                      </div>
-                      <JsonCustomerEditor
-                        item={current_record?.data?.[current_record?.current]}
-                        collapse={3}
-                        setData={d => setData(d, current_record, current_record?.current)}
-                      />
-                    </div>
-                  </Card>
-                </div>
+                <PanelDetail
+                  startMock={startMock}
+                  setData={setData}
+                  childrenDrawer={childrenDrawer}
+                  setChildrenDrawer={setChildrenDrawer}
+                  current_record={current_record}
+                />
               </div>
             </Drawer>
           );

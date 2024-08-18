@@ -8,28 +8,41 @@ const cache_requests = '_api_recorder_requests_';
 
 window[cache_requests] = {};
 
+let deBuger = false;
+try {
+  deBuger = localStorage.getItem('app_recorder_debug');
+} catch (error) {}
+
+function logger(...args) {
+  if (deBuger) {
+    console.log(...args);
+  }
+}
+
 export const sendResponseMessage = async (url, response, type = 'XHR') => {
   if (type === 'FETCH') {
-    console.log('FETCH::', response);
+    logger('FETCH::', response);
 
     response.text().then(function (text) {
       window.postMessage(
         {
           type,
           data: text,
-          headers: response.headers,
+          // headers: response.headers,
+          headers: {},
           url: getOriginPath(url),
         },
         '*',
       );
     });
   } else {
-    console.log('xhr::', response);
+    logger('xhr::', response);
 
     window.postMessage(
       {
         type,
-        headers: response.headers,
+        // headers: response.headers,
+        headers: {},
         data: response.text,
         url: getOriginPath(url),
       },
@@ -43,7 +56,7 @@ const getRequests = () => {
 };
 export const registerRequest = request => {
   const url = getOriginPath(request.url);
-  console.log('registerRequest', cache_requests, url, window[cache_requests]);
+  logger('registerRequest', cache_requests, url, window[cache_requests]);
   if (!window[cache_requests][url]) {
     window[cache_requests][url] = {
       request: {},
@@ -55,7 +68,7 @@ export const registerRequest = request => {
 
 export const registerResponse = (response, api) => {
   const url = getOriginPath(api);
-  console.log('registerResponse', url);
+  logger('registerResponse', url);
 
   window[cache_requests][url].response = response;
 };
@@ -140,7 +153,7 @@ class RequestInterceptor {
     const self = this;
 
     xhook.before(function (request, callback) {
-      //   console.log("xhr request",request);
+      //   logger("xhr request",request);
 
       const state = getState();
 
@@ -153,7 +166,7 @@ class RequestInterceptor {
         const headers = config.responseHeaders;
         const responseText = self.getResponseByUrl(request.url, state);
         if (request?.isFetch) {
-          callback(new Response(new Blob([responseText])), {
+          return callback(new Response(new Blob([responseText])), {
             headers,
             status: 200,
             statusText: 'OK from mock',
@@ -174,7 +187,7 @@ class RequestInterceptor {
             responseText: responseText,
           };
 
-          callback(res);
+          return callback(res);
         }
       }
 
@@ -195,7 +208,7 @@ class RequestInterceptor {
       if (flag) {
         if (response && response.status === 200) {
           registerResponse(response, request.url);
-          console.log('正常：response', response);
+          logger('正常：response', response);
 
           try {
             if (request?.isFetch) {

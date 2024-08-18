@@ -16,10 +16,7 @@ async function toggleTheme() {
   link.rel = 'stylesheet';
   link.href = chrome.runtime.getURL('assets/css/contentStyle.chunk.css');
   document.head.insertBefore(script, document.head.firstChild);
-
-  setTimeout(() => {
-    document.head.appendChild(link);
-  }, 0);
+  document.head.insertBefore(link, document.head.firstChild);
 
   // 使用拦截器
 

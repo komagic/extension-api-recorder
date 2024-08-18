@@ -5,7 +5,7 @@ import { Flex, Input, Popconfirm, Popover, Tag, theme, Tooltip } from 'antd';
 import classnames from 'classnames';
 import BaseBtn from '../BaseBtn';
 import { ACTIONS, useStore } from '../../Context/useStore';
-import { DEFAULT_RULES } from '@root/src/constant';
+import { DEFAULT_RULES, Z_INDEX_MAIN } from '@root/src/constant';
 
 const tagInputStyle: React.CSSProperties = {
   width: 64,
@@ -150,6 +150,9 @@ const RuleGroups: React.FC = () => {
         />
       ) : (
         <Popover
+          style={{
+            zIndex: Z_INDEX_MAIN,
+          }}
           content={
             <div className="flex flex-col gap-2">
               <div className="text-base" style={{ color: '#fff' }}>

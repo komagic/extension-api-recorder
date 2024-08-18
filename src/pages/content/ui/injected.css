@@ -12,6 +12,12 @@
     transform: translate3d(0);
   }
 
+  .apirecorder-popover{
+    z-index: 3000!important;
+  }
+  .apirecorder-tooltip{
+    z-index: 3000!important;
+  }
   .apirecorder-popover-inner{
     z-index: 3000;
   }

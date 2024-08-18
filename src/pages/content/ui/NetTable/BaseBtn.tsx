@@ -1,6 +1,7 @@
 import { Button, ButtonProps, Tooltip, TooltipProps } from 'antd';
 import React, { useState } from 'react';
 import { useNetTable } from './useNetTable';
+import { Z_INDEX_MAIN } from '@root/src/constant';
 
 type BaseBtnProps = ButtonProps &
   TooltipProps & {
@@ -18,7 +19,12 @@ const BaseBtn: React.FC<BaseBtnProps> = ({
 }) => {
   const { state, dispatch } = useNetTable();
   const wrapper = toolTip ? (
-    <Tooltip title={toolTip} placement={placement}>
+    <Tooltip
+      title={toolTip}
+      style={{
+        zIndex: Z_INDEX_MAIN + 1,
+      }}
+      placement={placement}>
       <Button
         size="small"
         {...rest}

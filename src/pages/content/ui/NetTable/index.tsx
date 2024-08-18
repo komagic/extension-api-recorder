@@ -1,5 +1,4 @@
 import {
-  ApiOutlined,
   BarChartOutlined,
   CaretRightOutlined,
   CheckCircleTwoTone,
@@ -13,42 +12,23 @@ import {
   PauseOutlined,
   PlusCircleTwoTone,
   ReloadOutlined,
+  SettingOutlined,
   VideoCameraFilled,
   VideoCameraOutlined,
-  VideoCameraTwoTone,
 } from '@ant-design/icons';
-import {
-  Badge,
-  Button,
-  Card,
-  Drawer,
-  Flex,
-  FloatButton,
-  Form,
-  Input,
-  Switch,
-  Table,
-  Tabs,
-  Tag,
-  Tooltip,
-  Typography,
-} from 'antd';
+import { Z_INDEX_MAIN } from '@root/src/constant';
+import { Badge, Card, Drawer, FloatButton, Form, Input, Switch, Table, Tabs, Tag, Tooltip, Typography } from 'antd';
+import classnames from 'classnames';
 import { JsonEditor } from 'json-edit-react';
-import React, { useRef, useState } from 'react';
+import { debounce } from 'lodash';
+import React, { useState } from 'react';
 import { ACTIONS } from '../Context/useStore';
 import BaseBtn from './BaseBtn';
-import { useNetTable } from './useNetTable';
-import { TableRowSelection } from 'antd/es/table/interface';
-import useAntdTable from './useAntdTable';
 import Resizer from './Resizer';
-import { debounce } from 'lodash';
-import useScroller from './useScroller';
-import classnames from 'classnames';
 import RuleGroups from './Rules';
-import { useMemo } from 'react';
-import { useMemoizedFn } from 'ahooks';
-import { useEffect } from 'react';
-import { Z_INDEX_MAIN } from '@root/src/constant';
+import useAntdTable from './useAntdTable';
+import { useNetTable } from './useNetTable';
+import useScroller from './useScroller';
 interface NetTableProps {
   children?: React.ReactNode;
 }
@@ -369,23 +349,30 @@ const NetTable: React.FC<NetTableProps> = () => {
                   fontSize: 12,
                   display: 'flex',
                   flexDirection: 'column',
-                  paddingLeft: 16,
-                  paddingRight: 16,
-                  paddingTop: 0,
+                  padding: '0 16px',
                 },
               }}
               extra={
-                <Tooltip title={state.enable ? '插件已开启' : '插件已关闭'}>
-                  <Switch
-                    style={{
-                      transition: 'none',
-                    }}
-                    value={state.enable}
-                    onChange={toggleApp}
-                    checkedChildren={<CheckOutlined />}
-                    unCheckedChildren={<CloseOutlined />}
-                  />
-                </Tooltip>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 8,
+                  }}>
+                  <Tooltip title={state.enable ? '插件已开启' : '插件已关闭'}>
+                    <Switch
+                      style={{
+                        transition: 'none',
+                      }}
+                      value={state.enable}
+                      onChange={toggleApp}
+                      checkedChildren={<CheckOutlined />}
+                      unCheckedChildren={<CloseOutlined />}
+                    />
+                  </Tooltip>
+                  <Tooltip title={state.enable ? '插件已开启' : '插件已关闭'}>
+                    <BaseBtn icon={<SettingOutlined />} />
+                  </Tooltip>
+                </div>
               }
               title={
                 <span
@@ -402,7 +389,10 @@ const NetTable: React.FC<NetTableProps> = () => {
               placement="bottom"
               onClose={() => setVisible(false)}
               open={visible}>
-              <>
+              <div
+                style={{
+                  position: 'relative',
+                }}>
                 <div
                   role="mask"
                   className="absolute w-full cursor-not-allowed h-[100%] backdrop-blur-sm bg-[rgba(0,0,0,0.2)]"
@@ -412,7 +402,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                     marginLeft: -30,
                   }}></div>
                 <div role="main-content" className="flex w-full">
-                  <div role="main-content-table" className="flex-1 min-w-0">
+                  <div role="main-content-table" className="flex-1 min-w-0 mr-[-16px]">
                     <div
                       className={classnames('grid sticky p-2 top-0 z-[99] items-center backdrop-blur-sm', {
                         'shadow-lg': isScrolled,
@@ -494,6 +484,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                     zIndex: Z_INDEX_MAIN + 1,
                     width: '50%',
                     right: 0,
+                    top: 0,
                     height: '100%',
                     transition: 'transform 0.4s',
                     transform: childrenDrawer ? 'translateX(0)' : 'translateX(120%)',
@@ -539,7 +530,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                     </div>
                   </Card>
                 </div>
-              </>
+              </div>
             </Drawer>
           );
         }}

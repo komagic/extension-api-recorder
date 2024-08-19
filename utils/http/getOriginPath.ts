@@ -16,7 +16,8 @@ export const getOriginPath = (current_url: string): string => {
     // 提取路径
     return url;
   } catch (error) {
-    console.error('getOriginPath:error', error);
+    logger('getOriginPath:error', error);
+    throw new Error('Invalid URL format');
   }
   return url;
 };

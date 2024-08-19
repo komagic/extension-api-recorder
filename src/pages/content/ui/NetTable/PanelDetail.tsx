@@ -74,6 +74,7 @@ export default function PanelDetail(props) {
               collapse={3}
               setData={d => props.setData(d, props.current_record, props.current_record?.current)}
             />
+          
           )}
           {/* {
             val==='request'&& (<>

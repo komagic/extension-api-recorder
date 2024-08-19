@@ -29,6 +29,7 @@ import { useNetTable } from './useNetTable';
 import useScroller from './useScroller';
 import PanelDetail from './PanelDetail';
 import JsonCustomerEditor from './JsonCustomerEditor';
+import TextEditor from './TextEditor';
 
 interface NetTableProps {
   children?: React.ReactNode;
@@ -167,7 +168,10 @@ const NetTable: React.FC<NetTableProps> = () => {
           return {
             key: index,
             label: '备份' + (index + 1),
-            children: <JsonCustomerEditor item={item} setData={d => setData(d, record, index)} />,
+            children:  (<TextEditor value={item} onChange={e => {
+              const v = e.target.value;
+              setData(v, record, index)
+            }}/>),
           };
         });
 

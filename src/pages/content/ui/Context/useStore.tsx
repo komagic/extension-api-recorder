@@ -30,13 +30,13 @@ export interface IState {
 const StoreContext = createContext<IValue | null>(null);
 interface IValue {
   state: IState;
-  dispatch?: any;
-  ModalComponent?: any;
-  onOpen?: (p) => void;
+  dispatch?: React.Dispatch<any>;
+  ModalComponent?: React.ReactNode;
+  onOpen?: (p: any) => void;
 }
 // 定义初始状态
 const initialState: IState = {
-  version: packagejson.version,
+  version: packagejson['version'],
   store_name: 'api_recorder',
   enable: true,
   height: 0,

@@ -16,8 +16,10 @@ export default function PanelDetail(props) {
   let params, body;
   if (val == 'request') {
     try {
-      params = extractUrlParams(web_requests[api]?.request?.url);
-      body = web_requests[api]?.request?.body;
+        if (web_requests[api]) {
+            params = extractUrlParams(web_requests[api]?.request?.url);
+            body = web_requests[api]?.request?.body;
+          }
       logger('params', params, body);
     } catch (error) {
       console.error('error', error);

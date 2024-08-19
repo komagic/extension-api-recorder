@@ -11,6 +11,7 @@ import {
   Input,
   Switch,
   Table,
+  TableColumnType,
   Tabs,
   Tag,
   Tooltip,
@@ -71,14 +72,14 @@ const NetTable: React.FC<NetTableProps> = () => {
   const [childrenDrawer, setChildrenDrawer] = useState(false);
 
 
-  const columns = [
+  const columns: TableColumnType[] = [
     {
       title: '接口',
       dataIndex: 'api',
       key: 'api',
       width: '40%',
       render: text => {
-        let item = {};
+        let item: Partial<URL> = {};
         try {
           item = new URL(text);
         } catch (error) {
@@ -214,7 +215,7 @@ const NetTable: React.FC<NetTableProps> = () => {
             tabBarExtraContent={{
               right: <SingBtn />,
             }}
-            onEdit={() => {}}
+            onEdit={() => { }}
             defaultActiveKey="1"
             items={items}
             onChange={onChange}
@@ -366,7 +367,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                   position: 'relative',
                 }}>
                 <div
-                role='div'
+                  role='div'
                   className="absolute w-full cursor-not-allowed h-[100%] backdrop-blur-sm bg-[rgba(0,0,0,0.2)]"
                   style={{
                     zIndex: Z_INDEX_MAIN + 2,
@@ -376,7 +377,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                 <div role="main-content" className="flex w-full">
                   <div role="main-content-table" className="flex-1 min-w-0 mr-[-16px]">
                     <div
-                    role='button'
+                      role='button'
                       className={classnames('grid sticky p-2 top-0 z-[99] items-center backdrop-blur-sm', {
                         'shadow-lg': isScrolled,
                         'grid-cols-3 gap-[8px]': true,

@@ -87,11 +87,12 @@ const RuleGroups: React.FC = () => {
   return (
     <Flex gap="4px 0" wrap align="end">
       {tags.map<React.ReactNode>((tag, index) => {
+         const key = `tag-${index}`;  
         if (editInputIndex === index) {
           return (
             <Input
               ref={editInputRef}
-              key={tag}
+              key={key}
               size="small"
               style={tagInputStyle}
               value={editInputValue}

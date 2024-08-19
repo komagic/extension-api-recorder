@@ -7,7 +7,7 @@ import { Z_INDEX_MAIN } from '@root/src/constant';
 type BaseBtnProps = ButtonProps &
   Partial<TooltipProps> & {
     children?: React.ReactNode;
-    toolTip: string;
+    toolTip?: string | React.ReactNode;
   };
 
 const BaseBtn: React.FC<BaseBtnProps> = ({

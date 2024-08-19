@@ -1,14 +1,22 @@
 import classnames from 'classnames';
 import { throttle } from 'lodash';
-import React from 'react';
+import React, { MutableRefObject, ReactNode, RefObject, useRef } from 'react';
 import { Resizable } from 'react-resizable';
 import { ACTIONS, useStore } from '../Context/useStore';
+type ResizerProps = {
+  children:ReactNode;
+  handleAxis: string;
+  // Add other props here with specific types  
+};
 
-const ResizeHandle = React.forwardRef(({ handleAxis, ...props }, ref) => {
+const ResizeHandle = React.forwardRef(({ handleAxis, ...props }: ResizerProps, ref:RefObject<HTMLDivElement>) => {
   return <div ref={ref} {...props} className={classnames(`handle-${handleAxis}`, `api-recorder-resize-handler`)}></div>;
 });
 
-const Resizer = ({ children, ...rest }: { children: (args: any) => any; [key in string]: any }) => {
+type p = {
+  children: (args: { height: number }) => React.ReactNode;
+}
+const Resizer = ({ children, ...rest }: p) => {
   const { state, dispatch } = useStore();
   const innerHeight = Math.min(window.innerHeight);
 
@@ -37,10 +45,10 @@ const Resizer = ({ children, ...rest }: { children: (args: any) => any; [key in 
       axis="y"
       minConstraints={[Infinity, 100]}
       maxConstraints={[Infinity, innerHeight]}
-      handle={<ResizeHandle />}
+      handle={ResizeHandle}
       onResize={onResize}
       {...rest}>
-      {children({ height })}
+      {children?.({ height })}
     </Resizable>
   );
 };

@@ -51,7 +51,10 @@
 //     }
 //   });
 // });
-const ports = {};
+const ports:{
+  devtool?: any,
+  content?: any
+} = {};
 
 chrome.runtime.onConnect.addListener(port => {
   if (port.name === 'devtools-page') {

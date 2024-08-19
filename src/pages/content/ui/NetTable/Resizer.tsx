@@ -3,14 +3,9 @@ import { throttle } from 'lodash';
 import React, { MutableRefObject, ReactNode, RefObject, useRef } from 'react';
 import { Resizable } from 'react-resizable';
 import { ACTIONS, useStore } from '../Context/useStore';
-type ResizerProps = {
-  children:ReactNode;
-  handleAxis: string;
-  // Add other props here with specific types  
-};
 
-const ResizeHandle = React.forwardRef(({ handleAxis, ...props }: ResizerProps, ref:RefObject<HTMLDivElement>) => {
-  return <div ref={ref} {...props} className={classnames(`handle-${handleAxis}`, `api-recorder-resize-handler`)}></div>;
+const ResizeHandle = React.forwardRef(({ ...props }, ref:RefObject<HTMLDivElement>) => {
+  return <div ref={ref} {...props} className={classnames(`handle-resizer`, `api-recorder-resize-handler`)}></div>;
 });
 
 type p = {
@@ -45,7 +40,7 @@ const Resizer = ({ children, ...rest }: p) => {
       axis="y"
       minConstraints={[Infinity, 100]}
       maxConstraints={[Infinity, innerHeight]}
-      handle={ResizeHandle}
+      handle={<ResizeHandle/>}
       onResize={onResize}
       {...rest}>
       {children?.({ height })}

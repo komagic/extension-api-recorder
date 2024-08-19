@@ -1,8 +1,8 @@
 # API Recorder
 
-API Recorder 是一个 Chrome 扩展,通过它，用户可以方便地修改网络请求和响应，从而更高效地进行 API 调试、Mock 数据响应。
+API Recorder is a Chrome extension that allows users to easily modify network requests and responses via HTTP and HTTPS, making API debugging and mock data response more efficient.
 
-API Recorder旨在简化 HTTP 请求的调试与管理 请求，提升开发效率。
+API Recorder 是一个 Chrome 扩展,通过它，用户可以方便地修改网络请求和响应，从而更高效地进行 API 调试、Mock 数据响应，简化 HTTP 请求的调试与管理 请求，提升开发效率。
 
 ## 目录
 1. [功能概述](#功能概述)
@@ -14,15 +14,9 @@ API Recorder旨在简化 HTTP 请求的调试与管理 请求，提升开发效�
 7. [许可证](#许可证)
 
 ## 功能概述
+Api Recorder是一个轻量化的工具，专为前端开发者、后端以及测试提供必要的工具集成，帮助他们将代码的编写、测试和调试速度提高数倍。Api Recorder降低了前端开发者在开发和测试需求上对后端开发者和环境的依赖。
 
-API Recorder 主要提供以下功能：
-
-
--**HTTP 请求拦截**: 拦截并查看浏览器发出的 HTTP 请求。
--**响应修改**: 允许用户修改 HTTP 响应的数据，无需后端配合即可进行前端调试。
--**Mock 响应**: 可以通过自定义规则，Mock 预期的响应内容，用于测试和调试。
--**版本控制**: 记录每个 API 路径的响应历史，并可以保存多个版本的响应以供切换。
--**数据持久化**: 使用浏览器的 localStorage 来缓存 API 响应，确保在页面刷新后依然可以查看拦截和修改的记录。
+通过Api Recorder，开发者可以创建模拟、验证和覆盖API响应，修改响应等，使用Api Recorder进行更快的调试。
 
 ## 安装与配置
 1.**下载扩展**: 在 Chrome 浏览器中打开扩展程序商店，搜索并下载 **API Recorder** 扩展。

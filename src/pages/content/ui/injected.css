@@ -1,0 +1,60 @@
+
+
+ .apirecorder-drawer{
+    z-index: 2090;
+ }
+
+.apirecorder-drawer-mask{
+    z-index: 2090;
+}
+ .apirecorder-drawer-content-wrapper{
+    transition: height 0s!important;
+    transform: translate3d(0);
+  }
+
+  .apirecorder-popover{
+    z-index: 3000!important;
+  }
+  .apirecorder-tooltip{
+    z-index: 3000!important;
+  }
+  .apirecorder-popover-inner{
+    z-index: 3000;
+  }
+
+  .api-recorder-resize-handler {
+    opacity: 0.8;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    cursor: ns-resize;
+    z-index: 100001;
+    user-select: none;
+    background: var(--primary-color, #1668dc);
+  }
+  
+  .api-recorder-resize-handler:hover {
+    opacity: 1;
+  }
+  
+  ::-webkit-scrollbar {
+    width: 4px;
+    border-radius: 8px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    background: #9492929f;
+  }
+  ::-webkit-scrollbar-track {
+    border-radius: 0;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    background: #1f1f1f;
+  }
+  
+  .custom-json-editor{
+   max-width: none!important;
+  }

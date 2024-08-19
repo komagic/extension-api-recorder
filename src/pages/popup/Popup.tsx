@@ -1,43 +1,31 @@
-import React from 'react';
-import logo from '@assets/img/logo.svg';
+'use client';
 import '@pages/popup/Popup.css';
-import useStorage from '@src/shared/hooks/useStorage';
-import exampleThemeStorage from '@src/shared/storages/exampleThemeStorage';
-import withSuspense from '@src/shared/hoc/withSuspense';
+// import useStorage from '@src/shared/hooks/useStorage';
+// import exampleThemeStorage from '@src/shared/storages/exampleThemeStorage';
 import withErrorBoundary from '@src/shared/hoc/withErrorBoundary';
+import withSuspense from '@src/shared/hoc/withSuspense';
+import { Card, ConfigProvider, theme } from 'antd';
 
 const Popup = () => {
-  const theme = useStorage(exampleThemeStorage);
+  // const theme = useStorage(exampleThemeStorage);
 
   return (
-    <div
-      className="App"
-      style={{
-        backgroundColor: theme === 'light' ? '#fff' : '#000',
+    <ConfigProvider
+      prefixCls="apirecorder"
+      theme={{
+        // 1. 单独使用暗色算法
+        algorithm: theme.darkAlgorithm,
       }}>
-      <header className="App-header" style={{ color: theme === 'light' ? '#000' : '#fff' }}>
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/pages/popup/Popup.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: theme === 'light' && '#0281dc', marginBottom: '10px' }}>
-          Learn React!
-        </a>
-        <button
-          style={{
-            backgroundColor: theme === 'light' ? '#fff' : '#000',
-            color: theme === 'light' ? '#000' : '#fff',
-          }}
-          onClick={exampleThemeStorage.toggle}>
-          Toggle theme
-        </button>
-      </header>
-    </div>
+      <Card
+        style={{
+          borderRadius: 0,
+        }}
+        className="dar h-full w-full border-radius-0"
+        title="API Recorder">
+        {/* <Button onClick={handleOpen}>启用</Button>
+        <Button onClick={handleDisable}>禁用</Button> */}
+      </Card>
+    </ConfigProvider>
   );
 };
 

@@ -29,7 +29,11 @@
   },
   "rules": {
     "react/react-in-jsx-scope": "off",
-    "import/no-unresolved": "off"
+    "import/no-unresolved": "off",
+    "@typescript-eslint/no-explicit-any":"warn",
+    "jsx-a11y/aria-role":"warn",
+    "react/prop-types": "warn",
+    "react/display-name":"warn"
   },
   "globals": {
     "chrome": "readonly"

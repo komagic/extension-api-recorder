@@ -50,3 +50,21 @@ const COLORS = {
   BgCyan: '\x1b[46m',
   BgWhite: '\x1b[47m',
 } as const;
+
+const KEY_DEBUG = 'api_recorder_debug';
+let is_debug_mode = false;
+try {
+  is_debug_mode = localStorage.getItem(KEY_DEBUG);
+} catch (error) {
+  console.warn('localStorage error');
+}
+
+export function logger(...args) {
+  if (!is_debug_mode) {
+    return;
+  }
+  if (args.length === 2 && ['success'].includes(args[1])) {
+    colorLog(args[1], args[0]);
+  }
+  console.log(COLORS.FgGreen, ...args);
+}

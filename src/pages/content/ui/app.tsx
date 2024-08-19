@@ -1,9 +1,17 @@
-import { useEffect } from 'react';
-
+import { ConfigProvider, theme } from 'antd';
+import { StoreProvider } from './Context/useStore';
+import NetTable from './NetTable';
 export default function App() {
-  useEffect(() => {
-    console.log('content view loaded');
-  }, []);
-
-  return <div className="">content view</div>;
+  return (
+    <StoreProvider>
+      <ConfigProvider
+        prefixCls="apirecorder"
+        theme={{
+          // 1. 单独使用暗色算法
+          algorithm: theme.darkAlgorithm,
+        }}>
+        <NetTable />
+      </ConfigProvider>
+    </StoreProvider>
+  );
 }

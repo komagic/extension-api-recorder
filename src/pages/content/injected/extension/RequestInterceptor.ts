@@ -72,7 +72,7 @@ const setState = state => {
 };
 
 const enable_save_response = (state, config, url) => {
-  let apis_map = state?.apis_map || {};
+  const apis_map = state?.apis_map || {};
   if (!state) {
     return true;
   }
@@ -104,7 +104,7 @@ class RequestInterceptor {
 
   getResponseByUrl(url, state) {
     const path = getOriginPath(url);
-    let item = state.apis_map[path];
+    const item = state.apis_map[path];
     return item?.data[item?.current || 0];
   }
 
@@ -132,7 +132,7 @@ class RequestInterceptor {
     if (!state) {
       return;
     }
-    let item = state.apis_map[path];
+    const item = state.apis_map[path];
     return item;
   };
 
@@ -140,7 +140,6 @@ class RequestInterceptor {
     /**
      * 如果有缓存且enable_mock为true，则直接返回缓存数据
      */
-    const self = this;
 
     xhook.before(function (request, callback) {
       //   logger("xhr request",request);
@@ -148,13 +147,11 @@ class RequestInterceptor {
       const state = getState();
 
       registerRequest(request);
-      const config = self.getConfig(request.url, state);
+      const config = this.getConfig(request.url, state);
       //如果存在mock
       if (state?.enable && config?.enable_mock) {
-        const requests_map = getRequests();
-        const path = getOriginPath(request.url);
         const headers = config.responseHeaders;
-        const responseText = self.getResponseByUrl(request.url, state);
+        const responseText = this.getResponseByUrl(request.url, state);
         if (request?.isFetch) {
           return callback(new Response(new Blob([responseText])), {
             headers,
@@ -202,7 +199,7 @@ class RequestInterceptor {
 
           try {
             if (request?.isFetch) {
-              let cloneResponse = response.clone();
+              const cloneResponse = response.clone();
               sendResponseMessage(request.url, cloneResponse, 'FETCH');
             } else {
               sendResponseMessage(request.url, response, 'XHR');

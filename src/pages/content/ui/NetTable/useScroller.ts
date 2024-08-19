@@ -14,7 +14,7 @@ export default function useScroller(wrapper) {
     return () => {
       wrapper?.removeEventListener('scroll', handleScroll);
     };
-  }, [wrapper]);
+  }, [wrapper,handleScroll]);
 
   return { isScrolled };
 }

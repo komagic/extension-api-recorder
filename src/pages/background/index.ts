@@ -1,4 +1,3 @@
-import communication from '@root/src/core/Communication';
 
 // import reloadOnUpdate from 'virtual:reload-on-update-in-background-script';
 
@@ -52,7 +51,7 @@ import communication from '@root/src/core/Communication';
 //     }
 //   });
 // });
-let ports = {};
+const ports = {};
 
 chrome.runtime.onConnect.addListener(port => {
   if (port.name === 'devtools-page') {

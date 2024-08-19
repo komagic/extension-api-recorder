@@ -1,4 +1,3 @@
-import { TableRowSelection } from 'antd/es/table/interface';
 import React, { useState } from 'react';
 
 
@@ -9,7 +8,7 @@ function useAntdTable() {
     console.log('selectedRowKeys changed: ', newSelectedRowKeys);
     setSelectedRowKeys(newSelectedRowKeys);
   };
-  const rowSelection: TableRowSelection = {
+  const rowSelection = {
     selectedRowKeys,
     onChange: onSelectChange,
   };

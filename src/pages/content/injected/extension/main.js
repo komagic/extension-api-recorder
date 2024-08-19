@@ -1,8 +1,10 @@
+
 const slice = (o, n) => Array.prototype.slice.call(o, n);
 
 let result = null;
 
 //find global object
+/* eslint-disable  */
 if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) {
   result = self;
 } else if (typeof global !== 'undefined') {

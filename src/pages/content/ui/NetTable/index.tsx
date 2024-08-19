@@ -1,26 +1,11 @@
 import {
   BarChartOutlined,
-  CaretRightOutlined,
-  CheckCircleTwoTone,
-  CheckOutlined,
-  CloseCircleTwoTone,
-  CloseOutlined,
-  CopyTwoTone,
-  DeleteTwoTone,
-  EditOutlined,
-  EditTwoTone,
-  PauseOutlined,
-  PlusCircleTwoTone,
-  ReloadOutlined,
-  SettingOutlined,
-  VideoCameraFilled,
-  VideoCameraOutlined,
+  CaretRightOutlined, CheckOutlined, CloseOutlined, EditOutlined, PauseOutlined, ReloadOutlined, VideoCameraFilled,
+  VideoCameraOutlined
 } from '@ant-design/icons';
 import { Z_INDEX_MAIN } from '@root/src/constant';
 import {
-  Badge,
-  Card,
-  Drawer,
+  Badge, Drawer,
   FloatButton,
   Form,
   Input,
@@ -29,11 +14,9 @@ import {
   Tabs,
   Tag,
   Tooltip,
-  Typography,
-  Segmented,
+  Typography
 } from 'antd';
 import classnames from 'classnames';
-import { JsonEditor } from 'json-edit-react';
 import { debounce } from 'lodash';
 import React, { useState } from 'react';
 import { ACTIONS } from '../Context/useStore';
@@ -43,7 +26,6 @@ import RuleGroups from './Rules';
 import useAntdTable from './useAntdTable';
 import { useNetTable } from './useNetTable';
 import useScroller from './useScroller';
-import { logger } from '@root/utils/log';
 import PanelDetail from './PanelDetail';
 import JsonCustomerEditor from './JsonCustomerEditor';
 
@@ -53,7 +35,6 @@ interface NetTableProps {
 
 const NetTable: React.FC<NetTableProps> = () => {
   const { state, dispatch } = useNetTable();
-  const [loading, setLoading] = useState(false);
   const [{ selectedRowKeys }, antdTableProps] = useAntdTable();
   const [filter_api_value, set_filter_api_value] = useState('');
   const startMock = (record, bol = true) => {
@@ -89,9 +70,6 @@ const NetTable: React.FC<NetTableProps> = () => {
   };
   const [childrenDrawer, setChildrenDrawer] = useState(false);
 
-  const showChildrenDrawer = () => {
-    setChildrenDrawer(true);
-  };
 
   const columns = [
     {
@@ -103,7 +81,9 @@ const NetTable: React.FC<NetTableProps> = () => {
         let item = {};
         try {
           item = new URL(text);
-        } catch (error) {}
+        } catch (error) {
+          console.log(error)
+        }
         const regex = new RegExp(`(${filter_api_value})`, 'gi');
         const parts = String(item?.origin + item?.pathname || text).split(regex);
         return (
@@ -142,20 +122,20 @@ const NetTable: React.FC<NetTableProps> = () => {
         const methods = new Map([
           [
             'XHR',
-            <Tag bordered={false} color="orange">
+            <Tag bordered={false} color="orange" key="xhr">
               XHR
             </Tag>,
           ],
           [
             'FETCH',
-            <Tag bordered={false} color="cyan">
+            <Tag bordered={false} color="cyan" key={'fetch'}>
               Fetch
             </Tag>,
           ],
         ]);
         return (
           methods.get(txt) || (
-            <Tag bordered={false} color="grey">
+            <Tag bordered={false} color="grey" key="unknown">
               unknown
             </Tag>
           )
@@ -330,6 +310,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                 zIndex: Z_INDEX_MAIN,
               }}
               onClick={e => {
+                e?.stopPropagation();
                 if (childrenDrawer) {
                   setChildrenDrawer(false);
                 }
@@ -385,7 +366,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                   position: 'relative',
                 }}>
                 <div
-                  role="mask"
+                role='div'
                   className="absolute w-full cursor-not-allowed h-[100%] backdrop-blur-sm bg-[rgba(0,0,0,0.2)]"
                   style={{
                     zIndex: Z_INDEX_MAIN + 2,
@@ -395,6 +376,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                 <div role="main-content" className="flex w-full">
                   <div role="main-content-table" className="flex-1 min-w-0 mr-[-16px]">
                     <div
+                    role='button'
                       className={classnames('grid sticky p-2 top-0 z-[99] items-center backdrop-blur-sm', {
                         'shadow-lg': isScrolled,
                         'grid-cols-3 gap-[8px]': true,
@@ -404,7 +386,6 @@ const NetTable: React.FC<NetTableProps> = () => {
                           type="primary"
                           onClick={mockSelectedRows}
                           disabled={!hasSelected}
-                          loading={loading}
                           icon={<BarChartOutlined />}>
                           一键模拟
                         </BaseBtn>
@@ -412,7 +393,6 @@ const NetTable: React.FC<NetTableProps> = () => {
                           onClick={recordSelectedRows}
                           disabled={!hasSelected}
                           danger
-                          loading={loading}
                           icon={<CaretRightOutlined />}>
                           一键录制
                         </BaseBtn>

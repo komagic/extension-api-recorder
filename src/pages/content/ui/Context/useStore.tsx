@@ -99,7 +99,6 @@ const reloadRequest = url => {
   );
 };
 
-const syncSave = async (storeName, data) => {};
 
 const reducer = (s, action) => {
   let state = s,
@@ -184,19 +183,20 @@ const reducer = (s, action) => {
     // 注册request
     case MessageNames.REQUEST:
       logger('MessageNames.REQUEST', action);
-
-      let request_url = action.url;
-      state.web_requests[request_url] = action.payload;
+      state.web_requests[action.url] = action.payload;
       break;
 
     case ACTIONS.SET_DATA:
-      const { data, index, api } = action.payload;
+    
       try {
+        const { data, index, api } = action.payload;
         if (state?.apis_map[api]?.data?.[index]) {
           state.apis_map[api].data[index] = data;
           logger('SET_DATA', state, state.apis_map[api], state?.apis_map[api]?.data?.[index]);
         }
-      } catch (error) {}
+      } catch (error) {
+        console.error(error)
+      }
 
       break;
     case ACTIONS.UPDATE_CURRENT:
@@ -205,13 +205,14 @@ const reducer = (s, action) => {
         if (state?.apis_map[api]) {
           state.apis_map[api].current = current;
         }
-      } catch (error) {}
+      } catch (error) {
+        console.log(error)
+      }
 
       break;
 
     case ACTIONS.UPDATE_RULES:
-      const new_rules = action.payload;
-      state.rules = new_rules;
+      state.rules = action.payload;
       break;
     case ACTIONS.RESOLVE_REQUEST:
       reloadRequest(action.payload.api);
@@ -248,7 +249,7 @@ export const StoreProvider = ({ children }) => {
   }, []);
 
   const xhrhandler = (e: MessageEvent<any>) => {
-    const { type, data, url, headers = {} } = e?.data;
+    const { type, data, url, headers = {} } = e.data;
     dispatch({
       type: type,
       payload: data,

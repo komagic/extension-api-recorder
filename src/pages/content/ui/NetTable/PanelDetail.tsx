@@ -26,10 +26,6 @@ export default function PanelDetail(props) {
 
   return (
     <div
-      role="panel-detail"
-      onClick={e => {
-        e.stopPropagation();
-      }}
       className="flex-1 min-w-0"
       style={{
         position: 'absolute',

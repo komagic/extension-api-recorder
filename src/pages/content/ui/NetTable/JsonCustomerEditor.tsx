@@ -11,9 +11,11 @@ function JsonCustomerEditor(props) {
   let parsed = {};
   try {
     parsed = JSON.parse(props.item);
-  } catch (error) {}
+  } catch (error) {
+    console.error(error)
+  }
   return (
-    <div onClick={e => e.stopPropagation()}>
+    <div>
       <JsonEditor
         theme={'default'}
         icons={{

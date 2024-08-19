@@ -32,7 +32,7 @@ class Communication {
    */
   setupBgMessageHub() {
     // 存储连接的端口
-    let ports = this.ports;
+    const ports = this.ports;
     console.log('ports:', ports);
 
     chrome.runtime.onConnect.addListener(port => {

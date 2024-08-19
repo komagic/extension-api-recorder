@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { InputRef } from 'antd';
-import { Flex, Input, Popconfirm, Popover, Tag, theme, Tooltip } from 'antd';
-import classnames from 'classnames';
+import { Flex, Input, Popconfirm, Popover, Tag, Tooltip } from 'antd';
 import BaseBtn from '../BaseBtn';
 import { ACTIONS, useStore } from '../../Context/useStore';
 import { DEFAULT_RULES, Z_INDEX_MAIN } from '@root/src/constant';
@@ -14,17 +13,11 @@ const tagInputStyle: React.CSSProperties = {
   verticalAlign: 'top',
 };
 
-enum RuleType {
-  contains,
-  Regex,
-}
 
 const CTag = ({ children, ...rest }) => <Tag {...rest}>{children}</Tag>;
 
 const RuleGroups: React.FC = () => {
   const { state, dispatch } = useStore();
-  const { token } = theme.useToken();
-  //   const [tags, setTags] = useState<string[]>(defaultTags);
   const tags = state.rules;
   const [inputVisible, setInputVisible] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -89,12 +82,6 @@ const RuleGroups: React.FC = () => {
       type: ACTIONS.UPDATE_RULES,
       payload: DEFAULT_RULES,
     });
-  };
-
-  const tagPlusStyle: React.CSSProperties = {
-    background: token.colorBgContainer,
-    borderStyle: 'dashed',
-    cursor: 'pointer',
   };
 
   return (

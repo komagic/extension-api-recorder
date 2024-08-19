@@ -49,7 +49,7 @@ const COLORS = {
 };
 
 const KEY_DEBUG = 'api_recorder_debug';
-let is_debug_mode = false;
+let is_debug_mode;
 try {
   is_debug_mode = localStorage.getItem(KEY_DEBUG);
 } catch (error) {

@@ -1,6 +1,6 @@
 // 导入要测试的函数
 import { getOriginPath } from '../getOriginPath';
-
+import { describe, expect,it } from 'vitest';
 describe('getOriginPath', () => {
   it('should return the URL without query parameters', () => {
     const currentUrl = 'https://example.com/path?query=1';

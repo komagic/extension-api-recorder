@@ -1,27 +1,13 @@
 'use client';
-import React from 'react';
 import '@pages/popup/Popup.css';
 // import useStorage from '@src/shared/hooks/useStorage';
 // import exampleThemeStorage from '@src/shared/storages/exampleThemeStorage';
-import withSuspense from '@src/shared/hoc/withSuspense';
 import withErrorBoundary from '@src/shared/hoc/withErrorBoundary';
+import withSuspense from '@src/shared/hoc/withSuspense';
 import { Card, ConfigProvider, theme } from 'antd';
 
-import { Button } from 'antd';
-import { XHR_ROOT, PANEL_ROOT } from '@root/src/constant';
 const Popup = () => {
   // const theme = useStorage(exampleThemeStorage);
-  const handleOpen = () => {
-    chrome.action.enable();
-  };
-  const handleDisable = () => {
-    document.getElementById(XHR_ROOT)?.remove();
-    document.getElementById(PANEL_ROOT)?.remove();
-    chrome.action.disable();
-    chrome.tabs.reload();
-
-    setTimeout(() => {}, 100);
-  };
 
   return (
     <ConfigProvider

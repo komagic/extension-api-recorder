@@ -2,24 +2,24 @@ import { BarChartOutlined, CloseOutlined } from '@ant-design/icons';
 import { Z_INDEX_MAIN } from '@root/src/constant';
 import extractUrlParams from '@root/utils/http/extraUrl';
 import { useState } from 'react';
-import JsonCustomerEditor from './JsonCustomerEditor';
 import { logger } from '@root/utils/log';
 import { Card } from 'antd';
 import BaseBtn from './BaseBtn';
+import TextEditor from './TextEditor';
 
 export default function PanelDetail(props) {
   const [val] = useState('response');
   const web_requests = window['_api_recorder_requests_'];
   const api = props.current_record?.api;
-  const json = props.current_record?.data?.[props.current_record?.current];
-
+  const json_str = props.current_record?.data?.[props.current_record?.current];
+  console.log('jsoncurrent_record', props, json_str);
   let params, body;
   if (val == 'request') {
     try {
-        if (web_requests[api]) {
-            params = extractUrlParams(web_requests[api]?.request?.url);
-            body = web_requests[api]?.request?.body;
-          }
+      if (web_requests[api]) {
+        params = extractUrlParams(web_requests[api]?.request?.url);
+        body = web_requests[api]?.request?.body;
+      }
       logger('params', params, body);
     } catch (error) {
       console.error('error', error);
@@ -29,6 +29,11 @@ export default function PanelDetail(props) {
   return (
     <div
       className="flex-1 min-w-0"
+      role="select"
+      onClick={e => {
+        e.stopPropagation();
+      }}
+      aria-hidden="true"
       style={{
         position: 'absolute',
         zIndex: Z_INDEX_MAIN + 1,
@@ -69,12 +74,19 @@ export default function PanelDetail(props) {
             )}
           </div>
           {val === 'response' && (
-            <JsonCustomerEditor
-              item={json}
-              collapse={3}
-              setData={d => props.setData(d, props.current_record, props.current_record?.current)}
+            // <JsonCustomerEditor
+            //   item={json}
+            //   collapse={3}
+            //   setData={d => props.setData(d, props.current_record, props.current_record?.current)}
+            // />
+            <TextEditor
+              key="response_editor"
+              value={json_str}
+              submit={v => {
+                props.setData(v, props.current_record, props.current_record?.current);
+              }}
+              autoSize={true}
             />
-          
           )}
           {/* {
             val==='request'&& (<>

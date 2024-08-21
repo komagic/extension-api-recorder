@@ -1,35 +1,30 @@
 import {
   BarChartOutlined,
-  CaretRightOutlined, CheckOutlined, CloseOutlined, EditOutlined, PauseOutlined, ReloadOutlined, VideoCameraFilled,
-  VideoCameraOutlined
+  CaretRightOutlined,
+  CheckOutlined,
+  CloseOutlined,
+  DotChartOutlined,
+  PauseOutlined,
+  ReloadOutlined,
+  VideoCameraFilled,
+  VideoCameraOutlined,
 } from '@ant-design/icons';
 import { Z_INDEX_MAIN } from '@root/src/constant';
-import {
-  Badge, Drawer,
-  FloatButton,
-  Form,
-  Input,
-  Switch,
-  Table,
-  TableColumnType,
-  Tabs,
-  Tag,
-  Tooltip,
-  Typography
-} from 'antd';
+import generateFakeResponse from '@root/utils/fakeResponse';
+import type { TableColumnType } from 'antd';
+import { Badge, Drawer, FloatButton, Form, Input, Switch, Table, Tabs, Tag, Tooltip, Typography } from 'antd';
 import classnames from 'classnames';
 import { debounce } from 'lodash';
 import React, { useState } from 'react';
 import { ACTIONS } from '../Context/useStore';
 import BaseBtn from './BaseBtn';
+import PanelDetail from './PanelDetail';
 import Resizer from './Resizer';
 import RuleGroups from './Rules';
+import TextEditor from './TextEditor';
 import useAntdTable from './useAntdTable';
 import { useNetTable } from './useNetTable';
 import useScroller from './useScroller';
-import PanelDetail from './PanelDetail';
-import JsonCustomerEditor from './JsonCustomerEditor';
-import TextEditor from './TextEditor';
 
 interface NetTableProps {
   children?: React.ReactNode;
@@ -72,7 +67,6 @@ const NetTable: React.FC<NetTableProps> = () => {
   };
   const [childrenDrawer, setChildrenDrawer] = useState(false);
 
-
   const columns: TableColumnType[] = [
     {
       title: '接口',
@@ -84,7 +78,7 @@ const NetTable: React.FC<NetTableProps> = () => {
         try {
           item = new URL(text);
         } catch (error) {
-          console.log(error)
+          console.log(error);
         }
         const regex = new RegExp(`(${filter_api_value})`, 'gi');
         const parts = String(item?.origin + item?.pathname || text).split(regex);
@@ -164,17 +158,26 @@ const NetTable: React.FC<NetTableProps> = () => {
       width: 400,
       key: 'data',
       render: (data, record) => {
+        let row_extra = null;
+        const ref_list = [];
         const items = data?.map((item, index) => {
+          const textRef = React.createRef();
+          ref_list[index] = textRef;
           return {
             key: index,
             label: '备份' + (index + 1),
-            children:  (<TextEditor value={item} onChange={e => {
-              const v = e.target.value;
-              setData(v, record, index)
-            }}/>),
+            children: (
+              <TextEditor
+                ref={textRef}
+                value={item}
+                submit={v => {
+                  setData(v, record, index);
+                }}
+              />
+            ),
           };
         });
-
+        row_extra = ref_list?.[record?.current];
         const SingBtn = () => {
           const [loading, setLoading] = useState(false);
           const handleLoading = () => {
@@ -186,16 +189,38 @@ const NetTable: React.FC<NetTableProps> = () => {
           };
           return (
             <div className="flex gap-2">
-              <Tooltip title="单条：获取数据">
+              <Tooltip title="获取数据">
                 <BaseBtn loading={loading} onClick={handleLoading} icon={<ReloadOutlined />} />
               </Tooltip>
               {data?.length && (
+                // <BaseBtn
+                //   icon={<EditOutlined />}
+                //   onClick={e => {
+                //     e.stopPropagation();
+                //     setChildrenDrawer(true);
+                //     set_current_api(record?.api);
+                //   }}
+                // />
                 <BaseBtn
-                  icon={<EditOutlined />}
+                  toolTip="随机mock"
+                  icon={<DotChartOutlined />}
                   onClick={e => {
                     e.stopPropagation();
-                    setChildrenDrawer(true);
-                    set_current_api(record?.api);
+                    let content = row_extra?.current?.getContent();
+                    try {
+                      if (typeof content === 'string') {
+                        content = JSON.parse(content);
+                      }
+                      content = generateFakeResponse(content);
+                    } catch (error) {
+                      console.log('mock error', error);
+                    }
+
+                    if (typeof content === 'object') {
+                      content = JSON.stringify(content);
+                    }
+                    console.log('ress:', content);
+                    row_extra?.current?.setContent(content);
                   }}
                 />
               )}
@@ -219,7 +244,7 @@ const NetTable: React.FC<NetTableProps> = () => {
             tabBarExtraContent={{
               right: <SingBtn />,
             }}
-            onEdit={() => { }}
+            onEdit={() => {}}
             defaultActiveKey="1"
             items={items}
             onChange={onChange}
@@ -285,7 +310,7 @@ const NetTable: React.FC<NetTableProps> = () => {
       return filter_api_value ? String(row?.api).includes(filter_api_value) : true;
     });
 
-  const [current_api, set_current_api] = useState(dataSource?.[0]?.api || '');
+  const [current_api] = useState(dataSource?.[0]?.api || '');
   const current_record = dataSource.find(item => item?.api === current_api);
 
   const hasSelected = selectedRowKeys.length > 0;
@@ -371,7 +396,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                   position: 'relative',
                 }}>
                 <div
-                  role='div'
+                  role="div"
                   className="absolute w-full cursor-not-allowed h-[100%] backdrop-blur-sm bg-[rgba(0,0,0,0.2)]"
                   style={{
                     zIndex: Z_INDEX_MAIN + 2,
@@ -381,7 +406,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                 <div role="main-content" className="flex w-full">
                   <div role="main-content-table" className="flex-1 min-w-0 mr-[-16px]">
                     <div
-                      role='button'
+                      role="button"
                       className={classnames('grid sticky p-2 top-0 z-[99] items-center backdrop-blur-sm', {
                         'shadow-lg': isScrolled,
                         'grid-cols-3 gap-[8px]': true,

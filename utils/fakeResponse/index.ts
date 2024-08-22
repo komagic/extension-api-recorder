@@ -1,5 +1,5 @@
 import faker from 'faker';
-faker.locales = 'zh_CN';
+faker.locale = 'zh_CN';
 type JsonType = Record<string, unknown> | string | number | boolean | null | undefined;
 
 // async function checkImage(url): Promise<boolean> {

@@ -5,7 +5,7 @@ import '@pages/popup/Popup.css';
 // import exampleThemeStorage from '@src/shared/storages/exampleThemeStorage';
 import withErrorBoundary from '@src/shared/hoc/withErrorBoundary';
 import withSuspense from '@src/shared/hoc/withSuspense';
-import { Button, Card, ConfigProvider, Popconfirm, Popover, theme } from 'antd';
+import { Button, Card, ConfigProvider, Popconfirm, theme } from 'antd';
 import { useCallback } from 'react';
 import AppStore from '../content/ui/Context/AppStore';
 import packagejson from '@root/package.json';

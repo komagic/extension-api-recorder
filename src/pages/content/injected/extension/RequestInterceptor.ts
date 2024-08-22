@@ -140,18 +140,17 @@ class RequestInterceptor {
     /**
      * 如果有缓存且enable_mock为true，则直接返回缓存数据
      */
-  const _self = this;
-    xhook.before(function (request, callback) {
+    xhook.before( (request, callback)=> {
       //   logger("xhr request",request);
 
       const state = getState();
 
       registerRequest(request);
-      const config = _self.getConfig(request.url, state);
+      const config = this.getConfig(request.url, state);
       //如果存在mock
       if (state?.enable && config?.enable_mock) {
         const headers = config.responseHeaders;
-        const responseText = _self.getResponseByUrl(request.url, state);
+        const responseText = this.getResponseByUrl(request.url, state);
         if (request?.isFetch) {
           return callback(new Response(new Blob([responseText])), {
             headers,
@@ -181,9 +180,9 @@ class RequestInterceptor {
       callback();
     });
 
-    xhook.after(function (request, response, cb) {
+    xhook.after( (request, response, cb)=> {
       const state = getState();
-      const config = _self.getConfig(request.url, state);
+      const config = this.getConfig(request.url, state);
 
       // const enable_save_response = true||(enable_white_list(request.url) && disable_black_list(request.url));
       if (response.status === 204) {

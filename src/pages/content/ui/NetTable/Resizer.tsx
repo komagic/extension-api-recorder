@@ -1,6 +1,6 @@
 import classnames from 'classnames';
 import { throttle } from 'lodash';
-import React, { MutableRefObject, ReactNode, RefObject, useRef } from 'react';
+import React, { RefObject } from 'react';
 import { Resizable } from 'react-resizable';
 import { ACTIONS, useStore } from '../Context/useStore';
 

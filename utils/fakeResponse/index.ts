@@ -1,6 +1,5 @@
 import faker from 'faker';
-faker.locale = 'zh_CN';
-type JsonType = Record<string, unknown> | string | number | boolean | null | undefined;
+type JsonType = Array<JsonType>|Record<string, unknown> | string | number | boolean | null | undefined;
 
 // async function checkImage(url): Promise<boolean> {
 //   try {
@@ -48,7 +47,7 @@ function generateFakeResponse(response: JsonType, language = 'zh_CN'): JsonType 
       );
 
     case '[object Array]':
-      return response.map(item => generateFakeResponse(item));
+      return (response as JsonType[]).map((item:JsonType) => generateFakeResponse(item));
 
     case '[object String]':
       if ((response as string).includes('"http')) {

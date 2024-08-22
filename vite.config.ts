@@ -1,10 +1,8 @@
 /// <reference types="vitest" />
+
 import react from '@vitejs/plugin-react';
-
 import autoprefixer from 'autoprefixer';
-
 import { defineConfig } from 'vite';
-
 import tailwindcss from 'tailwindcss';
 
 import path, { resolve } from 'path';
@@ -68,4 +66,4 @@ export default defineConfig({
     include: ['**/*.test.ts', '**/*.test.tsx'],
     setupFiles: './test-utils/vitest.setup.js',
   },
-});
+} as any);

@@ -1,5 +1,5 @@
 import { Input } from 'antd';
-import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
+import  { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import BaseBtn from './BaseBtn';
 import { Z_INDEX_MAIN } from '@root/src/constant';
@@ -9,7 +9,7 @@ interface TextEditorProps extends TextAreaProps {
   submit?: (val: string) => void;
 }
 
-const TextEditor: React.FC<TextEditorProps<HTMLTextAreaElement>> = ({ value, submit, ...rest }, ref) => {
+const TextEditor= ({ value, submit, ...rest }:Partial<TextEditorProps>, ref) => {
   // 初始状态
   const initialContent = value;
 
@@ -63,11 +63,10 @@ const TextEditor: React.FC<TextEditorProps<HTMLTextAreaElement>> = ({ value, sub
     the_error = error;
     console.error(the_error);
   }
-  console.log('TextEditor', input);
   return (
     <div className="relative">
       <Input.TextArea minLength={3} value={input} onChange={handleTextChange} {...rest} />
-      {the_error && <div className="absolute top-0 right-0 text-red-500">不是合法的json</div>}
+      {the_error && <div className="top-0 right-0 text-red-500">不是合法的json</div>}
       <div
         className=" top-0 right-[12px] mt-[4px]"
         style={{

@@ -46,7 +46,6 @@ const handleClear = () => {
         styles={{
           body:{
           paddingTop: 0,
-
           }
         }}
         className="dar h-full w-full border-radius-0"

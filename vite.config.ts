@@ -1,8 +1,11 @@
 /// <reference types="vitest" />
-
+/** @type {import('vite').UserConfig} */
 import react from '@vitejs/plugin-react';
+
 import autoprefixer from 'autoprefixer';
+
 import { defineConfig } from 'vite';
+
 import tailwindcss from 'tailwindcss';
 
 import path, { resolve } from 'path';
@@ -32,6 +35,7 @@ export default defineConfig({
   },
   plugins: [...getPlugins(isDev), react()],
   publicDir: resolve(rootDir, 'public'),
+
   build: {
     outDir: resolve(rootDir, 'dist'),
     /** Can slow down build speed. */
@@ -49,9 +53,11 @@ export default defineConfig({
         popup: resolve(pagesDir, 'popup', 'index.html'),
         options: resolve(pagesDir, 'options', 'index.html'),
       },
+
       output: {
         entryFileNames: 'src/pages/[name]/index.js',
-        chunkFileNames: isDev ? 'assets/js/[name].js' : 'assets/js/[name].[hash].js',
+        // chunkFileNames: isDev ? 'assets/js/[name].[hash].js' : 'assets/js/[name].[hash].js',
+        chunkFileNames: isDev ? 'assets/js/[name].js' : 'assets/js/[name].js',
         assetFileNames: assetInfo => {
           const { name } = path.parse(assetInfo.name);
           const assetFileName = name === 'contentStyle' ? `${name}` : name;
@@ -66,4 +72,4 @@ export default defineConfig({
     include: ['**/*.test.ts', '**/*.test.tsx'],
     setupFiles: './test-utils/vitest.setup.js',
   },
-} as any);
+});

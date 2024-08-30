@@ -32,7 +32,7 @@ type JsonType = Array<JsonType> | Record<string, unknown> | string | number | bo
 //   return res;
 // }
 
-function generateFakeResponse(response: JsonType, language = 'zh_CN'): JsonType {
+function generateFakeResponse(response: JsonType, language = 'zh_CN'): JsonType | string {
   const type = Object.prototype.toString.call(response);
   switch (type) {
     case '[object Object]':
@@ -48,14 +48,14 @@ function generateFakeResponse(response: JsonType, language = 'zh_CN'): JsonType 
       return (response as JsonType[]).map((item: JsonType) => generateFakeResponse(item));
 
     case '[object String]': {
-      const isNumberString = /^\d+$/.test(response); // 判断是否为数字字符串
+      const isNumberString = /^\d+$/.test((response as string)); // 判断是否为数字字符串
       if (isNumberString) {
-        return faker.random.number(response?.length)+''; // 生成一个随机的数字
+        return faker.random.number((response as string)?.length) + ''; // 生成一个随机的数字
       }
       if ((response as string).includes('"http')) {
         return response; // 生成一个随机的图片链接
       } else {
-        if (response?.length < 4) {
+        if ((response as string)?.length < 4) {
           return faker.Name.findName();
         } else {
           return faker.Lorem.sentence(); // 返回随机句子

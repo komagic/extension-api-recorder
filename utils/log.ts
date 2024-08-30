@@ -55,7 +55,7 @@ let is_debug_mode;
 try {
   is_debug_mode = window.location.href.includes('alipay.net') || window.location.href.includes('localhost');
 } catch (error) {
-  console.warn('localStorage error');
+  console.warn('Error determining debug mode:', error);  
 }
 
 export function logger(...args) {

@@ -37,12 +37,7 @@ const NetTable: React.FC<NetTableProps> = () => {
   const startMock = (record, bol = true) => {
     dispatch({ type: ACTIONS.TOGGLE_MOCK, payload: { api: record.api, bol } });
   };
-  useEffect(() => {
-    setTimeout(() => {
-      console.log('window', window);
-      new RequestInterceptor();
-    }, 1000);
-  }, []);
+
   const toggleRecord = (record, bol = true) => {
     dispatch({
       type: ACTIONS.TOGGLE_RECORD,

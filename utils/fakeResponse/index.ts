@@ -47,7 +47,7 @@ function generateFakeResponse(response: JsonType, language = 'zh_CN'): JsonType 
     case '[object Array]':
       return (response as JsonType[]).map((item: JsonType) => generateFakeResponse(item));
 
-    case '[object String]':
+    case '[object String]': {
       const isNumberString = /^\d+$/.test(response); // 判断是否为数字字符串
       if (isNumberString) {
         return faker.random.number(response?.length)+''; // 生成一个随机的数字
@@ -61,7 +61,7 @@ function generateFakeResponse(response: JsonType, language = 'zh_CN'): JsonType 
           return faker.Lorem.sentence(); // 返回随机句子
         }
       }
-
+    }
     case '[object Number]':
       return faker.Helpers.randomNumber();
 

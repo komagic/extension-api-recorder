@@ -38,7 +38,8 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-resizable": "^3.0.5",
-    "webextension-polyfill": "0.10.0"
+    "webextension-polyfill": "0.10.0",
+    "faker-zh-cn": "^0.5.9"
   },
   "devDependencies": {
     "@commitlint/cli": "18.4.4",

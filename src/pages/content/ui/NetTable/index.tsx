@@ -391,6 +391,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                     <VideoCameraFilled />
                   </span>
                   API Recorder
+
                 </span>
               }
               placement="bottom"
@@ -431,6 +432,10 @@ const NetTable: React.FC<NetTableProps> = () => {
                           icon={<CaretRightOutlined />}>
                           一键录制
                         </BaseBtn>
+
+                  <BaseBtn onClick={()=>window.location.reload()} icon={
+                    <ReloadOutlined />
+                  }>刷新</BaseBtn>
                         <div
                           style={{
                             width: 100,

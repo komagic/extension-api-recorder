@@ -1,5 +1,5 @@
-import faker from 'faker';
-type JsonType = Array<JsonType>|Record<string, unknown> | string | number | boolean | null | undefined;
+import faker from 'faker-zh-cn';
+type JsonType = Array<JsonType> | Record<string, unknown> | string | number | boolean | null | undefined;
 
 // async function checkImage(url): Promise<boolean> {
 //   try {
@@ -34,8 +34,6 @@ type JsonType = Array<JsonType>|Record<string, unknown> | string | number | bool
 
 function generateFakeResponse(response: JsonType, language = 'zh_CN'): JsonType {
   const type = Object.prototype.toString.call(response);
-  // 设置 faker 的语言
-  faker.locale = language;
   switch (type) {
     case '[object Object]':
       return Object.entries(response).reduce(
@@ -47,20 +45,28 @@ function generateFakeResponse(response: JsonType, language = 'zh_CN'): JsonType 
       );
 
     case '[object Array]':
-      return (response as JsonType[]).map((item:JsonType) => generateFakeResponse(item));
+      return (response as JsonType[]).map((item: JsonType) => generateFakeResponse(item));
 
     case '[object String]':
+      const isNumberString = /^\d+$/.test(response); // 判断是否为数字字符串
+      if (isNumberString) {
+        return faker.random.number(response?.length)+''; // 生成一个随机的数字
+      }
       if ((response as string).includes('"http')) {
         return response; // 生成一个随机的图片链接
       } else {
-        return faker.lorem.sentences(1); // 返回随机句子
+        if (response?.length < 4) {
+          return faker.Name.findName();
+        } else {
+          return faker.Lorem.sentence(); // 返回随机句子
+        }
       }
 
     case '[object Number]':
-      return faker.datatype.number();
+      return faker.Helpers.randomNumber();
 
     case '[object Boolean]':
-      return faker.datatype.boolean();
+      return Math.random() < 0.8;
 
     case '[object Null]':
       return null;

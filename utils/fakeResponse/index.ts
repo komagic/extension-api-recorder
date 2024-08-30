@@ -66,7 +66,7 @@ function generateFakeResponse(response: JsonType, language = 'zh_CN'): JsonType 
       return faker.Helpers.randomNumber();
 
     case '[object Boolean]':
-      return Math.random() < 0.8;
+      return true;
 
     case '[object Null]':
       return null;

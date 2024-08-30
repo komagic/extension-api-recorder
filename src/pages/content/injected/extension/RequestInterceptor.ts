@@ -145,12 +145,22 @@ class RequestInterceptor {
       const state = getState();
 
       registerRequest(request);
+
       const config = this.getConfig(request.url, state);
+
       //如果存在mock
       if (state?.enable && config?.enable_mock) {
         const headers = config.responseHeaders;
+
         const responseText = this.getResponseByUrl(request.url, state);
+        const common_headers =  {
+          ...headers,
+          'access-control-allow-origin': '*',
+          'access-control-allow-credentials': true,
+        };
         if (request?.isFetch) {
+          request.headers = common_headers
+
           return callback(new Response(new Blob([responseText])), {
             headers,
             status: 200,
@@ -159,11 +169,7 @@ class RequestInterceptor {
         }
         if (request.xhr) {
           const res = {
-            headers: {
-              ...headers,
-              'access-control-allow-origin': '*',
-              'access-control-allow-credentials': true,
-            },
+            headers: common_headers,
             data: responseText,
             status: 200,
             statusText: 'OK',
@@ -182,25 +188,32 @@ class RequestInterceptor {
     xhook.after((request, response, cb) => {
       const state = getState();
       const config = this.getConfig(request.url, state);
-
+    
+      const better_url = request?.url;
       // const enable_save_response = true||(enable_white_list(request.url) && disable_black_list(request.url));
       if (response.status === 204) {
         return;
       }
-      const flag = enable_save_response(state, config, request.url);
-      console.log('正常：response', flag, response);
+      if (request?.url?.includes('chrome-extension') || response?.url?.includes('chrome-extension')) {
+        return cb(response);
+      }
+      const flag = enable_save_response(state, config, better_url);
 
       // this enable record
       if (flag) {
         if (response && response.status === 200) {
-          registerResponse(response, request.url);
+          registerResponse(response, better_url);
 
           try {
+            const headers = {
+              'Cache-Control': 'no-store',
+            };
             if (request?.isFetch) {
               const cloneResponse = response.clone();
-              sendResponseMessage(request.url, cloneResponse, 'FETCH');
+          
+              sendResponseMessage(better_url, cloneResponse, 'FETCH');
             } else {
-              sendResponseMessage(request.url, response, 'XHR');
+              sendResponseMessage(better_url, response, 'XHR');
             }
           } catch (error) {
             console.error(' xhook.after: error', error);

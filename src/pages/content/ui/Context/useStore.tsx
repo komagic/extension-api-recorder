@@ -90,6 +90,7 @@ const updateWindowStore = state => {
 };
 
 const reloadRequest = url => {
+  console.log('reloadRequest',url);
   window.postMessage(
     {
       type: 'inject:reload-request',
@@ -151,7 +152,7 @@ const reducer = (s, action) => {
 
       break;
 
-    case MessageNames.FETCH:
+    case MessageNames.FETCH: {
       url = getUrlOriginPath(action.url);
       if (!url) {
         return state;
@@ -179,7 +180,7 @@ const reducer = (s, action) => {
       });
 
       break;
-
+    }
     // 注册request
     case MessageNames.REQUEST:
       logger('MessageNames.REQUEST', action);
@@ -187,7 +188,6 @@ const reducer = (s, action) => {
       break;
 
     case ACTIONS.SET_DATA:
-    
       try {
         const { data, index, api } = action.payload;
         if (state?.apis_map[api]?.data?.[index]) {
@@ -195,7 +195,7 @@ const reducer = (s, action) => {
           logger('SET_DATA', state, state.apis_map[api], state?.apis_map[api]?.data?.[index]);
         }
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
 
       break;
@@ -206,7 +206,7 @@ const reducer = (s, action) => {
           state.apis_map[api].current = current;
         }
       } catch (error) {
-        console.log(error)
+        console.log(error);
       }
 
       break;
@@ -214,9 +214,10 @@ const reducer = (s, action) => {
     case ACTIONS.UPDATE_RULES:
       state.rules = action.payload;
       break;
-    case ACTIONS.RESOLVE_REQUEST:
+    case ACTIONS.RESOLVE_REQUEST: {
       reloadRequest(action.payload.api);
       return state;
+    }
     case ACTIONS.UPDATE_STATE:
       state = { ...state, ...action.payload };
       break;

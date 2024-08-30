@@ -11,4 +11,5 @@ export const Z_INDEX_MAIN = 2090;
 
 export const MESSAGES_OF_EXTENSION = {
   START_XHR: 'START_XHR',
+  CLEAR_CACHE: 'CLEAR_CACHE',
 };

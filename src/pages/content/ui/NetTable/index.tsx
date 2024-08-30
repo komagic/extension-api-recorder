@@ -9,7 +9,7 @@ import {
   VideoCameraFilled,
   VideoCameraOutlined,
 } from '@ant-design/icons';
-import { Z_INDEX_MAIN } from '@root/src/constant';
+import { MESSAGES_OF_EXTENSION, Z_INDEX_MAIN } from '@root/src/shared/constant';
 import generateFakeResponse from '@root/utils/fakeResponse';
 import type { TableColumnType } from 'antd';
 import { Badge, Drawer, FloatButton, Form, Input, Switch, Table, Tabs, Tag, Tooltip, Typography } from 'antd';
@@ -37,7 +37,12 @@ const NetTable: React.FC<NetTableProps> = () => {
   const startMock = (record, bol = true) => {
     dispatch({ type: ACTIONS.TOGGLE_MOCK, payload: { api: record.api, bol } });
   };
-
+  useEffect(() => {
+    setTimeout(() => {
+      console.log('window', window);
+      new RequestInterceptor();
+    }, 1000);
+  }, []);
   const toggleRecord = (record, bol = true) => {
     dispatch({
       type: ACTIONS.TOGGLE_RECORD,
@@ -189,9 +194,10 @@ const NetTable: React.FC<NetTableProps> = () => {
           };
           return (
             <div className="flex gap-2">
-              <Tooltip title="获取数据">
-                <BaseBtn loading={loading} onClick={handleLoading} icon={<ReloadOutlined />} />
-              </Tooltip>
+                <BaseBtn 
+                toolTip="获取数据（前置条件：记录状态）"
+                disabled={!record?.enable_record}
+                loading={loading} onClick={handleLoading} icon={<ReloadOutlined />} />
               {data?.length && (
                 // <BaseBtn
                 //   icon={<EditOutlined />}
@@ -386,7 +392,6 @@ const NetTable: React.FC<NetTableProps> = () => {
                     <VideoCameraFilled />
                   </span>
                   API Recorder
-
                 </span>
               }
               placement="bottom"
@@ -428,9 +433,18 @@ const NetTable: React.FC<NetTableProps> = () => {
                           一键录制
                         </BaseBtn>
 
-                  <BaseBtn onClick={()=>window.location.reload()} icon={
-                    <ReloadOutlined />
-                  }>刷新</BaseBtn>
+                        <BaseBtn
+                          toolTip="停用缓存刷新"
+                          onClick={() => {
+                            // 发送消息到页面
+                            window.postMessage(
+                              { type: 'INJECT_TO_BACKGROUND', action:MESSAGES_OF_EXTENSION.CLEAR_CACHE },
+                              window.location.origin,
+                            );
+                          }}
+                          icon={<ReloadOutlined />}>
+                          刷新
+                        </BaseBtn>
                         <div
                           style={{
                             width: 100,

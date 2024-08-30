@@ -14,6 +14,7 @@ reloadOnUpdate('pages/background');
 // reloadOnUpdate('pages/content/style.scss');
 const initMessageHandler = () => {
   chrome.runtime.onMessage.addListener((message, sender) => {
+    
     /* From any case, return true when sendResponse is called asynchronously */
     switch (message.action) {
       case MESSAGES_OF_EXTENSION.START_XHR:
@@ -24,6 +25,13 @@ const initMessageHandler = () => {
           frameIds: [sender.frameId],
         });
         // applyScriptRules(sender.tab?.id, sender.frameId, sender.url);
+        break;
+
+      case MESSAGES_OF_EXTENSION.CLEAR_CACHE:
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+          chrome.tabs.reload(tabs[0].id, { bypassCache: true });
+        });
+
         break;
     }
     return false;

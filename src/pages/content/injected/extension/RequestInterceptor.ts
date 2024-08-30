@@ -46,7 +46,7 @@ const getRequests = () => {
 };
 export const registerRequest = request => {
   const url = getOriginPath(request.url);
-  logger('registerRequest', cache_requests, url, window[cache_requests]);
+  console.log('registerRequest', cache_requests, url, window[cache_requests]);
   if (!window[cache_requests][url]) {
     window[cache_requests][url] = {
       request: {},
@@ -98,7 +98,6 @@ class RequestInterceptor {
   constructor() {
     this.addListeners();
     this.interceptXHR();
-
     // this.interceptFetch();
   }
 
@@ -140,7 +139,7 @@ class RequestInterceptor {
     /**
      * 如果有缓存且enable_mock为true，则直接返回缓存数据
      */
-    xhook.before( (request, callback)=> {
+    xhook.before((request, callback) => {
       //   logger("xhr request",request);
 
       const state = getState();
@@ -180,7 +179,7 @@ class RequestInterceptor {
       callback();
     });
 
-    xhook.after( (request, response, cb)=> {
+    xhook.after((request, response, cb) => {
       const state = getState();
       const config = this.getConfig(request.url, state);
 
@@ -189,12 +188,12 @@ class RequestInterceptor {
         return;
       }
       const flag = enable_save_response(state, config, request.url);
+      console.log('正常：response', flag, response);
 
       // this enable record
       if (flag) {
         if (response && response.status === 200) {
           registerResponse(response, request.url);
-          logger('正常：response', response);
 
           try {
             if (request?.isFetch) {
@@ -208,16 +207,6 @@ class RequestInterceptor {
           }
         }
       }
-
-      // if (state?.enable && config?.enable_mock) {
-      //   const responseText = self.getResponseByUrl(request.url, state);
-      //   return cb(new Response(new Blob([responseText])), {
-      //     status: 200,
-      //     statusText: 'OK',
-      //   });
-      // }
-
-      // end
       cb(response);
     });
   };

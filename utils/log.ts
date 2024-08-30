@@ -51,12 +51,11 @@ const COLORS = {
   BgWhite: '\x1b[47m',
 } as const;
 
-const KEY_DEBUG = 'api_recorder_debug';
 let is_debug_mode;
 try {
-  is_debug_mode = localStorage.getItem(KEY_DEBUG);
+  is_debug_mode = window.location.href.includes('alipay.net') || window.location.href.includes('localhost');
 } catch (error) {
-  console.warn('localStorage error');
+  console.warn('Error determining debug mode:', error);  
 }
 
 export function logger(...args) {

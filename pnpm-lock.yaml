@@ -29,6 +29,9 @@ dependencies:
   faker:
     specifier: 5.5.3
     version: 5.5.3
+  faker-zh-cn:
+    specifier: ^0.5.9
+    version: 0.5.9
   json-edit-react:
     specifier: ^1.15.7
     version: 1.15.7(react@18.2.0)
@@ -3720,6 +3723,12 @@ packages:
       strip-final-newline: 3.0.0
     dev: true
 
+  /faker-zh-cn@0.5.9:
+    resolution: {integrity: sha512-4LlG/p12Y7Puwm5pgO3DjhJFz2SxHkRZd7mN765+BE9BW2jjPKwsvFiUA8u2P/i1LEs7PmWIKbCSI7MDj95RUg==}
+    dependencies:
+      pinyin: 0.0.1
+    dev: false
+
   /faker@5.5.3:
     resolution: {integrity: sha512-wLTv2a28wjUyWkbnX7u/ABZBkUkIF2fCd73V6P2oFqEGEktDfzWx4UxrSqtPRw0xPRAcjeAOIiJWqZm3pP4u3g==}
     dev: false
@@ -5252,6 +5261,10 @@ packages:
     resolution: {integrity: sha512-C3FsVNH1udSEX48gGX1xfvwTWfsYWj5U+8/uK15BGzIGrKoUpghX8hWZwa/OFnakBiiVNmBvemTJR5mcy7iPcg==}
     engines: {node: '>=4'}
     dev: true
+
+  /pinyin@0.0.1:
+    resolution: {integrity: sha512-tHbbYbybD6aoVSfhgSKB2iZEI+XOVAV8MN6RrPSUuBlyWdXfbL3DHhZ9FmedmhwIWEAMY96SQTam6nBwL6o9Pg==}
+    dev: false
 
   /pirates@4.0.6:
     resolution: {integrity: sha512-saLsH7WeYYPiD25LDuLRRY/i+6HaPYr6G1OUlN39otzkSTxKnubR9RTxS3/Kk50s1g2JTgFwWQDQyplC5/SHZg==}

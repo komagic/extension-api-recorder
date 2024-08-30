@@ -15,7 +15,7 @@ import type { TableColumnType } from 'antd';
 import { Badge, Drawer, FloatButton, Form, Input, Switch, Table, Tabs, Tag, Tooltip, Typography } from 'antd';
 import classnames from 'classnames';
 import { debounce } from 'lodash';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ACTIONS } from '../Context/useStore';
 import BaseBtn from './BaseBtn';
 import PanelDetail from './PanelDetail';
@@ -25,7 +25,7 @@ import TextEditor from './TextEditor';
 import useAntdTable from './useAntdTable';
 import { useNetTable } from './useNetTable';
 import useScroller from './useScroller';
-
+import RequestInterceptor from '../../injected/extension/RequestInterceptor';
 interface NetTableProps {
   children?: React.ReactNode;
 }
@@ -386,6 +386,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                     <VideoCameraFilled />
                   </span>
                   API Recorder
+
                 </span>
               }
               placement="bottom"
@@ -426,6 +427,10 @@ const NetTable: React.FC<NetTableProps> = () => {
                           icon={<CaretRightOutlined />}>
                           一键录制
                         </BaseBtn>
+
+                  <BaseBtn onClick={()=>window.location.reload()} icon={
+                    <ReloadOutlined />
+                  }>刷新</BaseBtn>
                         <div
                           style={{
                             width: 100,

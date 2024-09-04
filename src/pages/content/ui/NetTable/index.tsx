@@ -287,17 +287,31 @@ const NetTable: React.FC<NetTableProps> = () => {
     setVisible(!visible);
   };
 
+  const handleRefresh = () => {
+    // 发送消息到页面
+    setTimeout(() => {
+      window.postMessage(
+        { type: 'INJECT_TO_BACKGROUND', action:MESSAGES_OF_EXTENSION.CLEAR_CACHE },
+        window.location.origin,
+      );
+    }, 0);
+  }
+
   const mockSelectedRows = () => {
     selectedRowKeys.forEach(api => {
       startMock({ api }, true);
     });
+      handleRefresh()
+
   };
 
   const recordSelectedRows = () => {
     selectedRowKeys.forEach(api => {
       toggleRecord({ api }, true);
     });
+      handleRefresh()
   };
+
 
   const dataSource = Object.entries(state?.apis_map || {})
     .map(([api, value]) => {
@@ -435,13 +449,7 @@ const NetTable: React.FC<NetTableProps> = () => {
 
                         <BaseBtn
                           toolTip="停用缓存刷新"
-                          onClick={() => {
-                            // 发送消息到页面
-                            window.postMessage(
-                              { type: 'INJECT_TO_BACKGROUND', action:MESSAGES_OF_EXTENSION.CLEAR_CACHE },
-                              window.location.origin,
-                            );
-                          }}
+                          onClick={handleRefresh}
                           icon={<ReloadOutlined />}>
                           刷新
                         </BaseBtn>

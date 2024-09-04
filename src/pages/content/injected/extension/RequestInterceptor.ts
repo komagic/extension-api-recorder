@@ -3,17 +3,24 @@
 import { getOriginPath } from '@root/utils/http/getOriginPath';
 import { logger } from '@root/utils/log';
 
-import { default as xhook } from './main';
-const cache_state = '_api_recorder_';
+import fetchInterceptor from './fetch-interceptor';
+import ajaxProxy from './proxy-xhr';
+
 const cache_requests = '_api_recorder_requests_';
+const cache_state = '_api_recorder_';
 
 window[cache_requests] = {};
 
-export const sendResponseMessage = async (url, response, type = 'XHR') => {
-  if (type === 'FETCH') {
-    logger('FETCH::', response);
+const INTERCEPT_TYPE = {
+  XHR: 'XHR',
+  FETCH: 'FETCH',
+};
 
-    response.text().then(function (text) {
+export const sendResponseMessage = async (url, responseText, type = INTERCEPT_TYPE.XHR) => {
+  if (type === INTERCEPT_TYPE.FETCH) {
+    logger('FETCH::', responseText);
+
+    responseText.text().then(function (text) {
       window.postMessage(
         {
           type,
@@ -26,14 +33,14 @@ export const sendResponseMessage = async (url, response, type = 'XHR') => {
       );
     });
   } else {
-    logger('xhr::', response);
+    logger('xhr::', responseText);
 
     window.postMessage(
       {
         type,
         // headers: response.headers,
         headers: {},
-        data: response.text,
+        data: responseText,
         url: getOriginPath(url),
       },
       '*',
@@ -43,24 +50,6 @@ export const sendResponseMessage = async (url, response, type = 'XHR') => {
 
 const getRequests = () => {
   return window[cache_requests];
-};
-export const registerRequest = request => {
-  const url = getOriginPath(request.url);
-  console.log('registerRequest', cache_requests, url, window[cache_requests]);
-  if (!window[cache_requests][url]) {
-    window[cache_requests][url] = {
-      request: {},
-      response: {},
-    };
-  }
-  window[cache_requests][url + '']['request'] = request;
-};
-
-export const registerResponse = (response, api) => {
-  const url = getOriginPath(api);
-  logger('registerResponse', url);
-
-  window[cache_requests][url].response = response;
 };
 
 const getState = () => {
@@ -81,6 +70,7 @@ const enable_save_response = (state, config, url) => {
   }
 
   const path = getOriginPath(url);
+  console.log('enable_save_response::', path, apis_map);
 
   // enable when empty
   if (apis_map && !apis_map[path]) {
@@ -96,14 +86,16 @@ const enable_save_response = (state, config, url) => {
 
 class RequestInterceptor {
   constructor() {
+    console.log('RequestInterceptor::constructor');
+
     this.addListeners();
     this.interceptXHR();
-    // this.interceptFetch();
+    this.interceptFetch();
   }
 
   getResponseByUrl(url, state) {
     const path = getOriginPath(url);
-    const item = state.apis_map[path];
+    const item = state?.apis_map?.[path];
     return item?.data[item?.current || 0];
   }
 
@@ -111,16 +103,19 @@ class RequestInterceptor {
     window.addEventListener('message', ({ data }) => {
       if (data.type === 'inject:update-store') {
         setState(data.data);
-      } else if (data.type === 'inject:reload-request') {
+      }
+      // 获取请求
+      else if (data.type === 'inject:reload-request') {
         const url = data.url;
         const requests_map = getRequests();
 
         const req = requests_map[url].request;
 
-        if (req?.isFetch) {
-          fetch(req.url, req);
-        } else if (req?.xhr) {
-          req.xhr.send();
+        if (req?.request) {
+          fetch(req.url,req.request)
+        } else if (req?.send) {
+          this.resendXHR(req);
+          // req.send();
         }
       }
     });
@@ -135,94 +130,218 @@ class RequestInterceptor {
     return item;
   };
 
-  interceptXHR = async () => {
-    /**
-     * 如果有缓存且enable_mock为true，则直接返回缓存数据
-     */
-    xhook.before((request, callback) => {
-      //   logger("xhr request",request);
+  registerRequest = (response_url, xhr, type = 'XHR') => {
+    const url = getOriginPath(response_url);
+    if (!url) return;
 
-      const state = getState();
+    if (!window[cache_requests][url]) {
+      window[cache_requests][url] = {
+        request: {},
+        response: {},
+        type,
+      };
+    }
+    window[cache_requests][url + '']['request'] = xhr;
+  };
 
-      registerRequest(request);
+  registerResponse = (response, api, type = INTERCEPT_TYPE.XHR) => {
+    const url = getOriginPath(api);
+    if (!window[cache_requests][url]) {
+      window[cache_requests][url] = {
+        request: {},
+        response: {},
+        type,
+      };
+    }
+    window[cache_requests][url].response = response;
+  };
 
-      const config = this.getConfig(request.url, state);
+  
+  captureResponse = (responseText: string | Promise<any>, res,type=INTERCEPT_TYPE.XHR) => {
+    const url = type===INTERCEPT_TYPE.XHR ? res.responseURL:res.url;
+    const state = getState();
+    const config = this.getConfig(url, state);
 
-      //如果存在mock
-      if (state?.enable && config?.enable_mock) {
-        const headers = config.responseHeaders;
+    const better_url = url;
 
-        const responseText = this.getResponseByUrl(request.url, state);
-        const common_headers =  {
-          ...headers,
-          'access-control-allow-origin': '*',
-          'access-control-allow-credentials': true,
-        };
-        if (request?.isFetch) {
-          request.headers = common_headers
+    // const enable_save_response = true||(enable_white_list(request.url) && disable_black_list(request.url));
+    if (res.status === 204) {
+      return;
+    }
+    if (url?.includes('chrome-extension')) {
+      return;
+    }
 
-          return callback(new Response(new Blob([responseText])), {
-            headers,
-            status: 200,
-            statusText: 'OK from mock',
-          });
-        }
-        if (request.xhr) {
-          const res = {
-            headers: common_headers,
-            data: responseText,
-            status: 200,
-            statusText: 'OK',
-            text: responseText,
-            response: responseText,
-            responseText: responseText,
-          };
+    const flag = enable_save_response(state, config, better_url);
+    console.log('enable_save_response::', better_url, flag );
 
-          return callback(res);
-        }
+    // this enable record
+    if (flag) {
+      if (res?.status === 200) {
+        this.registerResponse(responseText, better_url,type);
+        sendResponseMessage(better_url, responseText, type);
+      }
+    }
+  };
+
+  resendXHR = originalXHR => {
+    // 创建新的 XMLHttpRequest 对象
+    const newXHR = new window.XMLHttpRequest();
+    newXHR.withCredentials = true;
+    // 获取原始请求的信息
+    const method = originalXHR.method || originalXHR.requestMethod;
+    const url = originalXHR.responseURL; // 可能需要控制访问跨域的问题
+    const async = originalXHR.async; // 一般使用异步请求，您也可以根据需求设置
+    //perform open
+    newXHR.open(method, url, async, originalXHR.user, originalXHR.pass);
+    //write xhr settings
+    console.log('newXHR', newXHR,'getAllResponseHeaders', newXHR.getAllResponseHeaders());
+
+    //insert headers
+    for (const header in originalXHR.headers) {
+      const value = originalXHR.headers[header];
+      if (header) {
+        newXHR.setRequestHeader(header, value);
+      }
+    }
+    //real send!
+    newXHR.send(originalXHR.body);
+  };
+
+  convert = function (headers, dest) {
+    const CRLF = '\r\n';
+
+    const objectToString = function (headersObj) {
+      const entries = Object.entries(headersObj);
+
+      const headers = entries.map(([name, value]) => {
+        return `${name.toLowerCase()}: ${value}`;
+      });
+
+      return headers.join(CRLF);
+    };
+
+    const stringToObject = function (headersString, dest) {
+      const headers = headersString.split(CRLF);
+      if (dest == null) {
+        dest = {};
       }
 
-      callback();
-    });
-
-    xhook.after((request, response, cb) => {
-      const state = getState();
-      const config = this.getConfig(request.url, state);
-    
-      const better_url = request?.url;
-      // const enable_save_response = true||(enable_white_list(request.url) && disable_black_list(request.url));
-      if (response.status === 204) {
-        return;
-      }
-      if (request?.url?.includes('chrome-extension') || response?.url?.includes('chrome-extension')) {
-        return cb(response);
-      }
-      const flag = enable_save_response(state, config, better_url);
-
-      // this enable record
-      if (flag) {
-        if (response && response.status === 200) {
-          registerResponse(response, better_url);
-
-          try {
-            const headers = {
-              'Cache-Control': 'no-store',
-            };
-            if (request?.isFetch) {
-              const cloneResponse = response.clone();
-          
-              sendResponseMessage(better_url, cloneResponse, 'FETCH');
-            } else {
-              sendResponseMessage(better_url, response, 'XHR');
-            }
-          } catch (error) {
-            console.error(' xhook.after: error', error);
+      for (let header of headers) {
+        if (/([^:]+):\s*(.+)/.test(header)) {
+          const name = RegExp.$1 != null ? RegExp.$1.toLowerCase() : undefined;
+          const value = RegExp.$2;
+          if (dest[name] == null) {
+            dest[name] = value;
           }
         }
       }
-      cb(response);
-    });
+
+      return dest;
+    };
+
+    switch (typeof headers) {
+      case 'object': {
+        return objectToString(headers);
+      }
+      case 'string': {
+        return stringToObject(headers, dest);
+      }
+    }
+
+    return [];
   };
+
+  readHead = xhr => {
+    // Accessing attributes on an aborted xhr object will
+    // throw an 'c00c023f error' in IE9 and lower, don't touch it.
+    const headers = {
+      'access-control-allow-origin': '*',
+      'access-control-allow-credentials': true,
+    };
+
+    const object = this.convert(xhr.getAllResponseHeaders(), headers);
+    for (const key in object) {
+      const val = object[key];
+      if (!headers[key]) {
+        const name = key.toLowerCase();
+        headers[name] = val;
+      }
+    }
+    return headers;
+  };
+
+  interceptXHR = async () => {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+
+    ajaxProxy.proxyAjax({
+      responseText: {
+        getter: function (value, xhr) {
+          const state = getState();
+          const config = self.getConfig(xhr.responseURL, state);
+          // mock
+          if (state?.enable && config?.enable_mock) {
+            const responseText = self.getResponseByUrl(xhr.responseURL, state);
+
+            console.log('before:responseText', responseText);
+            return responseText;
+          }
+          return value;
+        },
+      },
+    
+      open: function (args) {
+        console.log('open', args);
+        this.method = args[0];
+        this.async = args[2];
+      },
+      send: function (args) {
+        console.log('send', args);
+        this.body = args[0];
+      },
+      onloadend: function (xhr) {
+        const responseText = xhr.responseText;
+        self.registerRequest(xhr.responseURL, xhr);
+        self.captureResponse(responseText, xhr);
+      },
+    });
+   
+  };
+
+  interceptFetch() {
+    const self = this;
+    return fetchInterceptor.register({
+      request: function (url, config) {
+        // Modify the url or config here
+        console.log('interceptFetch',url,config);
+        
+        return [url, config];
+      },
+
+      requestError: function (error) {
+        // Called when an error occured during another 'request' interceptor call
+        return Promise.reject(error);
+      },
+
+      response: async function (response) {
+        // Modify the reponse object
+        const state = getState();
+        const config = self.getConfig(response.url, state);
+        // mock
+        if (state?.enable && !config?.enable_mock) {
+        self.registerRequest(response.url, response, INTERCEPT_TYPE.FETCH);
+        self.captureResponse(response, response, INTERCEPT_TYPE.FETCH);
+        }
+        return response;
+      },
+
+      responseError: function (error) {
+        // Handle an fetch error
+        return Promise.reject(error);
+      },
+    });
+  }
 }
 
 // 使用拦截器

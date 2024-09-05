@@ -108,15 +108,18 @@ class RequestInterceptor {
       else if (data.type === 'inject:reload-request') {
         const url = data.url;
         const requests_map = getRequests();
+        console.log('rereqreqreq',requests_map[url],url);
 
-        const req = requests_map[url].request;
-
-        if (req?.request) {
-          fetch(req.url,req.request)
-        } else if (req?.send) {
-          this.resendXHR(req);
-          // req.send();
+        const req = requests_map[url]?.request;
+        if(url in requests_map) {
+          if (req instanceof Request) {
+            fetch(req.url,req)
+          } else if (req?.send) {
+            this.resendXHR(req);
+          }
         }
+        
+      
       }
     });
   }
@@ -130,7 +133,7 @@ class RequestInterceptor {
     return item;
   };
 
-  registerRequest = (response_url, xhr, type = 'XHR') => {
+  registerRequest = (response_url, request, type = 'XHR') => {
     const url = getOriginPath(response_url);
     if (!url) return;
 
@@ -141,7 +144,9 @@ class RequestInterceptor {
         type,
       };
     }
-    window[cache_requests][url + '']['request'] = xhr;
+    console.log('registerRequest::', url, request);
+    
+    window[cache_requests][url]['request'] = request;
   };
 
   registerResponse = (response, api, type = INTERCEPT_TYPE.XHR) => {
@@ -157,7 +162,7 @@ class RequestInterceptor {
   };
 
   
-  captureResponse = (responseText: string | FetchInterceptorResponse, res,type=INTERCEPT_TYPE.XHR) => {
+  captureResponse = (responseText: string | Response, res,type=INTERCEPT_TYPE.XHR) => {
     const url = type===INTERCEPT_TYPE.XHR ? res.responseURL:res.url;
     const state = getState();
     const config = this.getConfig(url, state);
@@ -330,9 +335,12 @@ class RequestInterceptor {
         const config = self.getConfig(response.url, state);
         // mock
         if (state?.enable && !config?.enable_mock) {
-        self.registerRequest(response.url, response, INTERCEPT_TYPE.FETCH);
-        self.captureResponse(response, response, INTERCEPT_TYPE.FETCH);
+          const cloneReponse = response.clone();
+        self.registerRequest(cloneReponse.url, response.request, INTERCEPT_TYPE.FETCH);
+        self.captureResponse(cloneReponse, cloneReponse, INTERCEPT_TYPE.FETCH);
         }
+        console.log('response',response);
+        
         return response;
       },
 

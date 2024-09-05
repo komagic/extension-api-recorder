@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client';
 import App from '@root/src/pages/content/ui/app';
 import refreshOnUpdate from 'virtual:reload-on-update-in-view';
 import injectedStyle from './injected.css?inline';
-import { PANEL_ROOT } from '@root/src/constant';
+import { PANEL_ROOT } from '@root/src/shared/constant';
 refreshOnUpdate('pages/content');
 const root = document.createElement('div');
 root.id = PANEL_ROOT;

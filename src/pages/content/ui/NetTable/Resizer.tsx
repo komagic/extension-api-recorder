@@ -15,7 +15,7 @@ const Resizer = ({ children, ...rest }: p) => {
   const { state, dispatch } = useStore();
   const innerHeight = Math.min(window.innerHeight);
 
-  const height = state.height || innerHeight / 2;
+  const height = Math.min(state.height || innerHeight / 2,(window.innerHeight -60));
 
   const onResize = throttle((e: any) => {
     /* resize 之前的值 */
@@ -23,7 +23,6 @@ const Resizer = ({ children, ...rest }: p) => {
     const ratio = Math.min(Math.max(e.clientY / innerHeight, 0.05), 0.92);
     const h = Math.floor(innerHeight * (1 - ratio));
     if (height != h) {
-      console.log('resize', h);
       dispatch({
         type: ACTIONS.UPDATE_STATE,
         payload: { height: h },

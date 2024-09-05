@@ -1,33 +1,26 @@
 'use client';
-import { ClearOutlined ,CaretRightOutlined, VideoCameraFilled } from '@ant-design/icons';
+import { CaretRightOutlined, ClearOutlined, VideoCameraFilled } from '@ant-design/icons';
 import '@pages/popup/Popup.css';
 // import useStorage from '@src/shared/hooks/useStorage';
 // import exampleThemeStorage from '@src/shared/storages/exampleThemeStorage';
+import packagejson from '@root/package.json';
+import { MESSAGES_OF_EXTENSION } from '@root/src/shared/constant';
 import withErrorBoundary from '@src/shared/hoc/withErrorBoundary';
 import withSuspense from '@src/shared/hoc/withSuspense';
 import { Button, Card, ConfigProvider, Popconfirm, theme } from 'antd';
-import { useCallback } from 'react';
-import AppStore from '../content/ui/Context/AppStore';
-import packagejson from '@root/package.json';
+import { sendToContent } from './messager';
 
 const Popup = () => {
   // const theme = useStorage(exampleThemeStorage);
-const handleOpen = useCallback(
-  () => {
-    
-  },
-  [],
-)
+const handleOpen = () => {
+  // saveToStore('enable',true);
+  sendToContent({ action: MESSAGES_OF_EXTENSION.SAVE_TO_STORE, key: 'enable', value: true });
+};
+ 
 
-const handleClear = () => {
-  AppStore.clear();
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    if (tabs.length > 0) {
-      const tabId = tabs[0].id;
-      chrome.tabs.sendMessage(tabId, { action: 'recorder:clearIndexedDB' });
-      chrome.tabs.reload(tabId);
-    }
-});
+const handleClear = async () => {
+  sendToContent({ action: MESSAGES_OF_EXTENSION.INDEXED_DB_CLEAR});
+
 }
 
 

@@ -2,7 +2,7 @@ import { Button, Popover } from 'antd';
 import type { ButtonProps, TooltipProps } from 'antd'
 import React from 'react';
 import { useNetTable } from './useNetTable';
-import { Z_INDEX_MAIN } from '@root/src/constant';
+import { Z_INDEX_MAIN } from '@root/src/shared/constant';
 
 type BaseBtnProps = ButtonProps &
   Partial<TooltipProps> & {

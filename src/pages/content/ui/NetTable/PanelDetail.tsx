@@ -1,5 +1,5 @@
 import { BarChartOutlined, CloseOutlined } from '@ant-design/icons';
-import { Z_INDEX_MAIN } from '@root/src/constant';
+import { Z_INDEX_MAIN } from '@root/src/shared/constant';
 import extractUrlParams from '@root/utils/http/extraUrl';
 import { useState } from 'react';
 import { logger } from '@root/utils/log';

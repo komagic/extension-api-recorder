@@ -2,7 +2,7 @@ import { Input } from 'antd';
 import  { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import BaseBtn from './BaseBtn';
-import { Z_INDEX_MAIN } from '@root/src/constant';
+import { Z_INDEX_MAIN } from '@root/src/shared/constant';
 import type { TextAreaProps } from 'antd/es/input';
 interface TextEditorProps extends TextAreaProps {
   value?: string;

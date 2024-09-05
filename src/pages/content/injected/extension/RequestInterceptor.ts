@@ -1,13 +1,14 @@
 // do not import
 
+import { cache_requests, cache_state } from '@root/src/shared/constant';
+import { getFromStore } from '@root/src/shared/store/local-store';
 import { getOriginPath } from '@root/utils/http/getOriginPath';
 import { logger } from '@root/utils/log';
 
-import fetchInterceptor, { FetchInterceptorResponse } from './fetch-interceptor';
-import ajaxProxy from './proxy-xhr';
+import AppStore from '../../ui/Context/AppStore';
 
-const cache_requests = '_api_recorder_requests_';
-const cache_state = '_api_recorder_';
+import fetchInterceptor from './fetch-interceptor';
+import ajaxProxy from './proxy-xhr';
 
 window[cache_requests] = {};
 
@@ -48,7 +49,7 @@ export const sendResponseMessage = async (url, responseText, type = INTERCEPT_TY
   }
 };
 
-const getRequests = () => {
+const getCacheRequests = () => {
   return window[cache_requests];
 };
 
@@ -60,18 +61,30 @@ const setState = state => {
   window[cache_state] = state;
 };
 
+const isEnableExtension = () => {
+  try {
+    const store = getFromStore();
+    return !!store.enable || false;
+  } catch (error) {
+    console.error('isEnableExtension', error);
+  }
+};
+
+const isMatchRules = url => {
+  const store = getFromStore();
+  const rules = store.rules;
+};
+
 const enable_save_response = (state, config, url) => {
   const apis_map = state?.apis_map || {};
   if (!state) {
     return true;
   }
-  if (!state.enable) {
+  if (!isEnableExtension()) {
     return false;
   }
 
   const path = getOriginPath(url);
-  console.log('enable_save_response::', path, apis_map);
-
   // enable when empty
   if (apis_map && !apis_map[path]) {
     return true;
@@ -86,8 +99,6 @@ const enable_save_response = (state, config, url) => {
 
 class RequestInterceptor {
   constructor() {
-    console.log('RequestInterceptor::constructor');
-
     this.addListeners();
     this.interceptXHR();
     this.interceptFetch();
@@ -107,15 +118,16 @@ class RequestInterceptor {
       // 获取请求
       else if (data.type === 'inject:reload-request') {
         const url = data.url;
-        const requests_map = getRequests();
+        const requests_map = getCacheRequests();
+        console.log('rereqreqreq', requests_map[url], url);
 
-        const req = requests_map[url].request;
-
-        if (req?.request) {
-          fetch(req.url,req.request)
-        } else if (req?.send) {
-          this.resendXHR(req);
-          // req.send();
+        const req = requests_map[url]?.request;
+        if (url in requests_map) {
+          if (req instanceof Request) {
+            fetch(req.url, req);
+          } else if (req?.send) {
+            this.resendXHR(req);
+          }
         }
       }
     });
@@ -126,11 +138,13 @@ class RequestInterceptor {
     if (!state) {
       return;
     }
+
     const item = state.apis_map[path];
+
     return item;
   };
 
-  registerRequest = (response_url, xhr, type = 'XHR') => {
+  registerRequest = (response_url, request, type = 'XHR') => {
     const url = getOriginPath(response_url);
     if (!url) return;
 
@@ -141,24 +155,24 @@ class RequestInterceptor {
         type,
       };
     }
-    window[cache_requests][url + '']['request'] = xhr;
+
+    window[cache_requests][url]['request'] = request;
   };
 
   registerResponse = (response, api, type = INTERCEPT_TYPE.XHR) => {
     const url = getOriginPath(api);
-    if (!window[cache_requests][url]) {
-      window[cache_requests][url] = {
-        request: {},
-        response: {},
-        type,
-      };
-    }
+    // if (!window[cache_requests][url]) {
+    //   window[cache_requests][url] = {
+    //     request: {},
+    //     response: {},
+    //     type,
+    //   };
+    // }
     window[cache_requests][url].response = response;
   };
 
-  
-  captureResponse = (responseText: string | FetchInterceptorResponse, res,type=INTERCEPT_TYPE.XHR) => {
-    const url = type===INTERCEPT_TYPE.XHR ? res.responseURL:res.url;
+  captureResponse = (responseText: string | Response, res, type = INTERCEPT_TYPE.XHR) => {
+    const url = type === INTERCEPT_TYPE.XHR ? res.responseURL : res.url;
     const state = getState();
     const config = this.getConfig(url, state);
 
@@ -171,14 +185,14 @@ class RequestInterceptor {
     if (url?.includes('chrome-extension')) {
       return;
     }
+    console.log('enable_save_response::', url);
 
     const flag = enable_save_response(state, config, better_url);
-    console.log('enable_save_response::', better_url, flag );
 
     // this enable record
     if (flag) {
       if (res?.status === 200) {
-        this.registerResponse(responseText, better_url,type);
+        this.registerResponse(responseText, better_url, type);
         sendResponseMessage(better_url, responseText, type);
       }
     }
@@ -195,8 +209,8 @@ class RequestInterceptor {
     //perform open
     newXHR.open(method, url, async, originalXHR.user, originalXHR.pass);
     //write xhr settings
-    console.log('newXHR', newXHR,'getAllResponseHeaders', newXHR.getAllResponseHeaders());
-
+    console.log('newXHR', newXHR, 'getAllResponseHeaders', newXHR.getAllResponseHeaders());
+    newXHR.onloadend = originalXHR.onloadend
     //insert headers
     for (const header in originalXHR.headers) {
       const value = originalXHR.headers[header];
@@ -272,73 +286,98 @@ class RequestInterceptor {
   };
 
   interceptXHR = async () => {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
 
     ajaxProxy.proxyAjax({
-      responseText: {
-        getter: function (value, xhr) {
-          const state = getState();
-          const config = self.getConfig(xhr.responseURL, state);
-          // mock
-          if (state?.enable && config?.enable_mock) {
-            const responseText = self.getResponseByUrl(xhr.responseURL, state);
-
-            console.log('before:responseText', responseText);
-            return responseText;
-          }
-          return value;
-        },
-      },
-    
-      open: function (args) {
+      open: function (args, xhr) {
         console.log('open', args);
         this.method = args[0];
         this.async = args[2];
       },
-      send: function (args) {
-        console.log('send', args);
+
+      // responseText: {
+      //   setter: function (value, xhr) {
+      //     return value;
+      //   },
+      // },
+
+      send: function (args, xhr) {
         this.body = args[0];
       },
       onloadend: function (xhr) {
+        console.log('onloadend',xhr);
+
         const responseText = xhr.responseText;
-        self.registerRequest(xhr.responseURL, xhr);
-        self.captureResponse(responseText, xhr);
+        const url = xhr.responseURL
+        self.registerRequest(url, xhr);
+        const state = getState();
+        const config = self.getConfig(url, state);
+        
+        if (isEnableExtension() && !config?.enable_mock) {
+          self.captureResponse(responseText, xhr, INTERCEPT_TYPE.XHR);
+        }
+
+        if (isEnableExtension() && config?.enable_mock) {
+          const responseText = self.getResponseByUrl(xhr.responseURL, state);
+          Object.defineProperty(xhr, 'response', { writable: true });
+          Object.defineProperty(xhr, 'responseText', { writable: true });
+          xhr.responseText = responseText;
+        }
       },
     });
-   
   };
 
   interceptFetch() {
     const self = this;
     return fetchInterceptor.register({
-      request: function (url, config) {
+      request: async function (url, config) {
         // Modify the url or config here
-        console.log('interceptFetch',url,config);
-        
+        if (isEnableExtension()) {
+          const state = await AppStore.load();
+          const _config = self.getConfig(url, state);
+
+          if (_config?.enable_mock) {
+            const responseText = self.getResponseByUrl(url, state);
+
+            return Promise.reject(
+              new Response(new Blob([responseText]), {
+                status: 200,
+                statusText: 'fromCache',
+                headers: { 'Content-Type': 'application/json' },
+              }),
+            );
+          }
+        }
         return [url, config];
       },
 
       requestError: function (error) {
-        // Called when an error occured during another 'request' interceptor call
+        console.log('requestError', error);
+
         return Promise.reject(error);
+      },
+
+      responseError: function (error) {
+        console.log('responseError', error);
+        if (error?.statusText === 'fromCache') {
+          return Promise.resolve(error);
+        }
+        return error;
       },
 
       response: function (response) {
         // Modify the reponse object
         const state = getState();
         const config = self.getConfig(response.url, state);
+        const cloneReponse = response.clone();
+        self.registerRequest(cloneReponse.url, response.request, INTERCEPT_TYPE.FETCH);
         // mock
-        if (state?.enable && !config?.enable_mock) {
-        self.registerRequest(response.url, response, INTERCEPT_TYPE.FETCH);
-        self.captureResponse(response, response, INTERCEPT_TYPE.FETCH);
+        if (isEnableExtension() && !config?.enable_mock) {
+          self.captureResponse(cloneReponse, cloneReponse, INTERCEPT_TYPE.FETCH);
         }
-        return response;
-      },
+        console.log('response~~~~', response);
 
-      responseError: function (error) {
-        // Handle an fetch error
-        return Promise.reject(error);
+        return response;
       },
     });
   }

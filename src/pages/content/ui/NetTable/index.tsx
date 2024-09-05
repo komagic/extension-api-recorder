@@ -25,24 +25,28 @@ import TextEditor from './TextEditor';
 import useAntdTable from './useAntdTable';
 import { useNetTable } from './useNetTable';
 import useScroller from './useScroller';
-import RequestInterceptor from '../../injected/extension/RequestInterceptor';
+import registerMessageCenter from './registerContentMessage';
 interface NetTableProps {
   children?: React.ReactNode;
 }
 
 const NetTable: React.FC<NetTableProps> = () => {
-  const { state, dispatch } = useNetTable();
+  const { state, dispatch, local_state } = useNetTable();
   const [{ selectedRowKeys }, antdTableProps] = useAntdTable();
   const [filter_api_value, set_filter_api_value] = useState('');
+  const [loading, setLoading] = useState(false);
+
   const startMock = (record, bol = true) => {
     dispatch({ type: ACTIONS.TOGGLE_MOCK, payload: { api: record.api, bol } });
   };
+
   useEffect(() => {
-    setTimeout(() => {
-      console.log('window', window);
-      new RequestInterceptor();
-    }, 1000);
+    registerMessageCenter();
   }, []);
+
+  const current_cancel_btn = null;
+  let current_confirm_btn = null;
+
   const toggleRecord = (record, bol = true) => {
     dispatch({
       type: ACTIONS.TOGGLE_RECORD,
@@ -192,12 +196,16 @@ const NetTable: React.FC<NetTableProps> = () => {
               setLoading(false);
             }, 600);
           };
+
           return (
             <div className="flex gap-2">
-                <BaseBtn 
+              <BaseBtn
                 toolTip="获取数据（前置条件：记录状态）"
                 disabled={!record?.enable_record}
-                loading={loading} onClick={handleLoading} icon={<ReloadOutlined />} />
+                loading={loading}
+                onClick={handleLoading}
+                icon={<ReloadOutlined />}
+              />
               {data?.length && (
                 // <BaseBtn
                 //   icon={<EditOutlined />}
@@ -291,37 +299,34 @@ const NetTable: React.FC<NetTableProps> = () => {
     // 发送消息到页面
     setTimeout(() => {
       window.postMessage(
-        { type: 'INJECT_TO_BACKGROUND', action:MESSAGES_OF_EXTENSION.CLEAR_CACHE },
+        { type: 'INJECT_TO_BACKGROUND', action: MESSAGES_OF_EXTENSION.CLEAR_CACHE },
         window.location.origin,
       );
     }, 0);
-  }
+  };
 
   const mockSelectedRows = () => {
+    setLoading(true);
     selectedRowKeys.forEach(api => {
       startMock({ api }, true);
     });
-      handleRefresh()
-
+    handleRefresh();
   };
 
   const recordSelectedRows = () => {
+    setLoading(true);
     selectedRowKeys.forEach(api => {
       toggleRecord({ api }, true);
     });
-      handleRefresh()
+    handleRefresh();
   };
 
-
   const dataSource = Object.entries(state?.apis_map || {})
-    .map(([api, value]) => {
+    .map(([api, value]: [string, any]) => {
       return {
         key: api,
         ...value,
         api,
-        status: {
-          ...value,
-        },
         data: value?.data || '',
         loading: false,
       };
@@ -372,6 +377,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                   display: 'flex',
                   flexDirection: 'column',
                   padding: '0 16px',
+                  overflowX: 'hidden',
                 },
               }}
               extra={
@@ -380,12 +386,12 @@ const NetTable: React.FC<NetTableProps> = () => {
                     display: 'flex',
                     gap: 8,
                   }}>
-                  <Tooltip title={state.enable ? '插件已开启' : '插件已关闭'}>
+                  <Tooltip title={local_state.enable ? '插件已开启' : '插件已关闭'}>
                     <Switch
                       style={{
                         transition: 'none',
                       }}
-                      value={state.enable}
+                      value={local_state.enable}
                       onChange={toggleApp}
                       checkedChildren={<CheckOutlined />}
                       unCheckedChildren={<CloseOutlined />}
@@ -420,7 +426,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                   className="absolute w-full cursor-not-allowed h-[100%] backdrop-blur-sm bg-[rgba(0,0,0,0.2)]"
                   style={{
                     zIndex: Z_INDEX_MAIN + 2,
-                    display: state?.enable ? 'none' : 'block',
+                    display: local_state?.enable ? 'none' : 'block',
                     marginLeft: -30,
                   }}></div>
                 <div role="main-content" className="flex w-full">
@@ -436,6 +442,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                           type="primary"
                           onClick={mockSelectedRows}
                           disabled={!hasSelected}
+                          loading={loading}
                           icon={<BarChartOutlined />}>
                           一键模拟
                         </BaseBtn>
@@ -443,6 +450,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                           onClick={recordSelectedRows}
                           disabled={!hasSelected}
                           danger
+                          loading={loading}
                           icon={<CaretRightOutlined />}>
                           一键录制
                         </BaseBtn>
@@ -450,6 +458,7 @@ const NetTable: React.FC<NetTableProps> = () => {
                         <BaseBtn
                           toolTip="停用缓存刷新"
                           onClick={handleRefresh}
+                          loading={loading}
                           icon={<ReloadOutlined />}>
                           刷新
                         </BaseBtn>
@@ -497,13 +506,13 @@ const NetTable: React.FC<NetTableProps> = () => {
                     />
                   </div>
                 </div>
-                <PanelDetail
+                {/* <PanelDetail
                   startMock={startMock}
                   setData={setData}
                   childrenDrawer={childrenDrawer}
                   setChildrenDrawer={setChildrenDrawer}
                   current_record={current_record}
-                />
+                /> */}
               </div>
             </Drawer>
           );

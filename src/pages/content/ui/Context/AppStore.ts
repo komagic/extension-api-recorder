@@ -1,7 +1,8 @@
 import IndexedDBStore from './IndexedDBStore';
 import { IState } from './useStore';
+const DBNAME ='APIRecorderDB'
 
-const STORE_NAME = 'apirecorder';
+const DB_STORE_NAME = 'api_recorder_db_store';
 
 export type API_MAP_TYPE = {
   [key: string]: {
@@ -14,7 +15,7 @@ export type API_MAP_TYPE = {
     current: number;
     responseHeaders: any;
     data: string[];
-  };
+  } | unknown;
 };
 
 class IndexedDBStateStore {
@@ -25,28 +26,36 @@ class IndexedDBStateStore {
   }
 
   public async saveState(state: IState): Promise<void> {
-    await this.store.setItem(STORE_NAME, state);
+    await this.store.setItem(DB_STORE_NAME, state);
   }
 
   public async loadState(): Promise<IState | undefined> {
-    return this.store.getItem(STORE_NAME);
+    return this.store.getItem(DB_STORE_NAME);
   }
 
   public async removeState(): Promise<void> {
-    await this.store.removeItem(STORE_NAME);
+    await this.store.removeItem(DB_STORE_NAME);
   }
 
   public async clearAllStates(): Promise<void> {
+    console.log('clearAllStates');
+
     await this.store.clear();
+  }
+
+  public deleteDB() {
+    return this.store.delete();
   }
 }
 
-const stateStore = new IndexedDBStateStore('MyStateDatabase', STORE_NAME);
+const stateStore = new IndexedDBStateStore(DBNAME, DB_STORE_NAME);
 
 const AppStore = {
   save: async (state: IState) => stateStore.saveState(state),
   load: async () => stateStore.loadState(),
   clear: async () => stateStore.removeState(),
+  delete: async () => stateStore.deleteDB(),
+
 };
 
 export default AppStore;

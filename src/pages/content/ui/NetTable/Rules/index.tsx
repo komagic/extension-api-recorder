@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { DEFAULT_RULES, Z_INDEX_MAIN } from '@root/src/shared/constant';
 import type { InputRef } from 'antd';
 import { Flex, Input, Popconfirm, Popover, Tag, Tooltip } from 'antd';
-import BaseBtn from '../BaseBtn';
+import React, { useEffect, useRef, useState } from 'react';
 import { ACTIONS, useStore } from '../../Context/useStore';
-import { DEFAULT_RULES, Z_INDEX_MAIN } from '@root/src/constant';
+import BaseBtn from '../BaseBtn';
 
 const tagInputStyle: React.CSSProperties = {
   width: 64,
@@ -17,8 +17,8 @@ const tagInputStyle: React.CSSProperties = {
 const CTag = ({ children, ...rest }) => <Tag {...rest}>{children}</Tag>;
 
 const RuleGroups: React.FC = () => {
-  const { state, dispatch } = useStore();
-  const tags = state.rules;
+  const {  dispatch, local_state } = useStore();
+  const tags = local_state.rules;
   const [inputVisible, setInputVisible] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [editInputIndex, setEditInputIndex] = useState(-1);
@@ -86,8 +86,8 @@ const RuleGroups: React.FC = () => {
 
   return (
     <Flex gap="4px 0" wrap align="end">
-      {tags.map<React.ReactNode>((tag, index) => {
-         const key = `tag-${index}`;  
+      {tags?.map<React.ReactNode>((tag, index) => {
+        const key = `tag-${index}`;
         if (editInputIndex === index) {
           return (
             <Input
@@ -144,10 +144,10 @@ const RuleGroups: React.FC = () => {
           content={
             <div className="flex flex-col gap-2">
               <div className="text-base" style={{ color: '#fff' }}>
-                匹配规则
+                匹配规则(满足任意其一即可)
               </div>
-              <span>包括：/api、.json</span>
-              <span>正则：/api/、/campus/</span>
+              <div>包括：/api、.json </div>
+              <div>正则：/api/、/campus/</div>
             </div>
           }>
           <BaseBtn icon={<PlusOutlined />} onClick={showInput}>
@@ -155,8 +155,8 @@ const RuleGroups: React.FC = () => {
           </BaseBtn>
         </Popover>
       )}
-      <Popconfirm title="确认回复默认匹配规则吗？" onConfirm={handleRecover} okText={'确认'} cancelText={'取消'}>
-        <BaseBtn toolTip={'恢复默认'} style={{ marginLeft: 4 }} placement="bottom" icon={<ReloadOutlined />}></BaseBtn>
+      <Popconfirm title="确认回复默认匹配规则吗？" placement='leftBottom' onConfirm={handleRecover} okText={'确认'} cancelText={'取消'}>
+        <BaseBtn toolTip={'恢复默认'} style={{ marginLeft: 4 }} placement="leftBottom" icon={<ReloadOutlined />}></BaseBtn>
       </Popconfirm>
     </Flex>
   );

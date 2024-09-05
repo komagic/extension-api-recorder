@@ -1,11 +1,11 @@
 {
   "name": "api-recorder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "api-recorder",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite.git"
+    "url": "https://github.com/komagic/extension-api-recorder.git"
   },
   "scripts": {
     "build": "tsc --noEmit && vite build",

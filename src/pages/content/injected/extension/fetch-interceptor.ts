@@ -1,4 +1,27 @@
 
+/**
+ * 
+Copyright (c) 2015 werk85
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ */
+
 let interceptors = [];
 
 function interceptor(fetch, ...args) {
@@ -13,7 +36,7 @@ function interceptor(fetch, ...args) {
   });
 
   // Register fetch call
-  promise = promise.then(args => {
+  promise = promise.then((args: [RequestInfo | URL,RequestInit]) => {
     const request = new Request(...args);
     return fetch(request).then(response => {
       response.request = request;
@@ -70,14 +93,14 @@ const fetchInterceptor = main(window);
 
 export default fetchInterceptor;
 
-
+export interface FetchInterceptorResponse extends Response {
+  request: Request;
+}
  
-    export interface FetchInterceptor {
+export interface FetchInterceptor {
       request?(url: string, config: any): Promise<any[]> | any[];
       requestError?(error: any): Promise<any>;
       response?(response: FetchInterceptorResponse): FetchInterceptorResponse;
       responseError?(error: any): Promise<any>;
-    }
+}
   
-    export function register(interceptor: FetchInterceptor): () => void;
-    export function clear(): void;

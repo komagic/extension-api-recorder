@@ -3,7 +3,7 @@
 import { getOriginPath } from '@root/utils/http/getOriginPath';
 import { logger } from '@root/utils/log';
 
-import fetchInterceptor from './fetch-interceptor';
+import fetchInterceptor, { FetchInterceptorResponse } from './fetch-interceptor';
 import ajaxProxy from './proxy-xhr';
 
 const cache_requests = '_api_recorder_requests_';
@@ -157,7 +157,7 @@ class RequestInterceptor {
   };
 
   
-  captureResponse = (responseText: string | Promise<any>, res,type=INTERCEPT_TYPE.XHR) => {
+  captureResponse = (responseText: string | FetchInterceptorResponse, res,type=INTERCEPT_TYPE.XHR) => {
     const url = type===INTERCEPT_TYPE.XHR ? res.responseURL:res.url;
     const state = getState();
     const config = this.getConfig(url, state);
@@ -324,7 +324,7 @@ class RequestInterceptor {
         return Promise.reject(error);
       },
 
-      response: async function (response) {
+      response: function (response) {
         // Modify the reponse object
         const state = getState();
         const config = self.getConfig(response.url, state);

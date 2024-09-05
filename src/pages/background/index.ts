@@ -14,7 +14,6 @@ reloadOnUpdate('pages/background');
 // reloadOnUpdate('pages/content/style.scss');
 const initMessageHandler = () => {
   chrome.runtime.onMessage.addListener((message, sender) => {
-    
     /* From any case, return true when sendResponse is called asynchronously */
     switch (message.action) {
       case MESSAGES_OF_EXTENSION.START_XHR:
@@ -37,5 +36,6 @@ const initMessageHandler = () => {
     return false;
   });
 };
+
 
 initMessageHandler();

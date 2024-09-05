@@ -16,7 +16,7 @@ async function toggleTheme() {
   link.href = chrome.runtime.getURL('assets/css/contentStyle.chunk.css');
   if (document.doctype?.name === 'html') {
     // chrome.runtime.sendMessage({ action: MESSAGES_OF_EXTENSION.START_XHR });
-    document.head.insertBefore(script, document.head.firstChild);
+    document.head.insertBefore(script,document.head.firstChild);
     document.head.insertBefore(link, document.head.firstChild);
 
     // 页面脚本 (content.js)

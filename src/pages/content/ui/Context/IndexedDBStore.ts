@@ -57,24 +57,58 @@ export default class IndexedDBStore<T> {
   public async removeItem(key: string): Promise<void> {
     const db = await this.dbPromise;
     return new Promise<void>((resolve, reject) => {
-      const transaction = db.transaction(this.storeName, 'readwrite');
+      const transaction = db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
       const request = store.delete(key);
-
+      console.log('removeItem', request);
+      
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
   }
 
   public async clear(): Promise<void> {
+
+    const db = await this.dbPromise;
+    
+    return new Promise<void>((resolve, reject) => {
+      const transaction = db.transaction(this.storeName, 'readwrite');
+      const store = transaction.objectStore(this.storeName);
+    console.log('clear', store,this.dbName,this.storeName);
+
+      const request = store.clear();
+
+      request.onsuccess = () => {resolve();
+
+        console.log(`Successfully cleared object store: ${this.storeName}`);
+      };
+      request.onerror = () => {reject(request.error);
+
+        console.error(`Error clearing object store: ${this.storeName}`);
+      };
+
+     
+    });
+  }
+
+  public async delete(): Promise<void> {
     const db = await this.dbPromise;
     return new Promise<void>((resolve, reject) => {
       const transaction = db.transaction(this.storeName, 'readwrite');
       const store = transaction.objectStore(this.storeName);
-      const request = store.clear();
 
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
-  }
+      const request = store.delete(this.storeName);
+
+     
+      request.onsuccess = () => {resolve();
+
+        console.log(`Successfully delete object store: ${this.storeName}`);
+      };
+      request.onerror = () => {reject(request.error);
+
+        console.error(`Error delete object store: ${this.storeName}`);
+      };
+
+  })
+}
 }

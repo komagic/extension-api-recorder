@@ -185,10 +185,8 @@ class RequestInterceptor {
     if (url?.includes('chrome-extension')) {
       return;
     }
-    console.log('enable_save_response::', url);
 
     const flag = enable_save_response(state, config, better_url);
-
     // this enable record
     if (flag) {
       if (res?.status === 200) {
@@ -322,6 +320,7 @@ class RequestInterceptor {
           Object.defineProperty(xhr, 'response', { writable: true });
           Object.defineProperty(xhr, 'responseText', { writable: true });
           xhr.responseText = responseText;
+          xhr.response = responseText;
         }
       },
     });
@@ -333,20 +332,25 @@ class RequestInterceptor {
       request: async function (url, config) {
         // Modify the url or config here
         if (isEnableExtension()) {
-          const state = await AppStore.load();
-          const _config = self.getConfig(url, state);
-
-          if (_config?.enable_mock) {
-            const responseText = self.getResponseByUrl(url, state);
-
-            return Promise.reject(
-              new Response(new Blob([responseText]), {
-                status: 200,
-                statusText: 'fromCache',
-                headers: { 'Content-Type': 'application/json' },
-              }),
-            );
+          try {
+            const state = await AppStore.load();
+            const _config = self.getConfig(url, state);
+  
+            if (_config?.enable_mock) {
+              const responseText = self.getResponseByUrl(url, state);
+  
+              return Promise.reject(
+                new Response(new Blob([responseText]), {
+                  status: 200,
+                  statusText: 'fromCache',
+                  headers: { 'Content-Type': 'application/json' },
+                }),
+              );
+            }
+          } catch (error) {
+            console.error('interceptFetch:error', error);
           }
+         
         }
         return [url, config];
       },

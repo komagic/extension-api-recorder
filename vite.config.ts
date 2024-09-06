@@ -1,6 +1,11 @@
 /// <reference types="vitest" />
 /** @type {import('vite').UserConfig} */
+
 import react from '@vitejs/plugin-react';
+
+import type { InlineConfig } from 'vitest';
+
+import type { UserConfig } from 'vite';
 
 import autoprefixer from 'autoprefixer';
 
@@ -12,12 +17,15 @@ import path, { resolve } from 'path';
 
 import { getPlugins } from './utils/vite';
 
+
+type ViteConfig = UserConfig & { test: InlineConfig };
 const rootDir = resolve(__dirname);
 const srcDir = resolve(rootDir, 'src');
 const pagesDir = resolve(srcDir, 'pages');
 
 const isDev = process.env.__DEV__ === 'true';
 const isProduction = !isDev;
+
 
 export default defineConfig({
   resolve: {
@@ -72,4 +80,4 @@ export default defineConfig({
     include: ['**/*.test.ts', '**/*.test.tsx'],
     setupFiles: './test-utils/vitest.setup.js',
   },
-});
+} as ViteConfig);

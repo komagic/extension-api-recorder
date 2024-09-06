@@ -207,7 +207,6 @@ class RequestInterceptor {
     //perform open
     newXHR.open(method, url, async, originalXHR.user, originalXHR.pass);
     //write xhr settings
-    console.log('newXHR', newXHR, 'getAllResponseHeaders', newXHR.getAllResponseHeaders());
     newXHR.onloadend = originalXHR.onloadend
     //insert headers
     for (const header in originalXHR.headers) {
@@ -288,7 +287,6 @@ class RequestInterceptor {
 
     ajaxProxy.proxyAjax({
       open: function (args, xhr) {
-        console.log('open', args);
         this.method = args[0];
         this.async = args[2];
       },
@@ -303,8 +301,6 @@ class RequestInterceptor {
         this.body = args[0];
       },
       onloadend: function (xhr) {
-        console.log('onloadend',xhr);
-
         const responseText = xhr.responseText;
         const url = xhr.responseURL
         self.registerRequest(url, xhr);
@@ -356,13 +352,10 @@ class RequestInterceptor {
       },
 
       requestError: function (error) {
-        console.log('requestError', error);
-
         return Promise.reject(error);
       },
 
       responseError: function (error) {
-        console.log('responseError', error);
         if (error?.statusText === 'fromCache') {
           return Promise.resolve(error);
         }
@@ -379,7 +372,6 @@ class RequestInterceptor {
         if (isEnableExtension() && !config?.enable_mock) {
           self.captureResponse(cloneReponse, cloneReponse, INTERCEPT_TYPE.FETCH);
         }
-        console.log('response~~~~', response);
 
         return response;
       },

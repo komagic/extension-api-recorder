@@ -15,12 +15,19 @@ const Popup = () => {
 const handleOpen = () => {
   // saveToStore('enable',true);
   sendToContent({ action: MESSAGES_OF_EXTENSION.SAVE_TO_STORE, key: 'enable', value: true });
+  setTimeout(() => {
+  sendToContent({ action: MESSAGES_OF_EXTENSION.CLEAR_CACHE });
+    
+  }, 0);
+
 };
  
 
 const handleClear = async () => {
   sendToContent({ action: MESSAGES_OF_EXTENSION.INDEXED_DB_CLEAR});
-
+  setTimeout(() => {
+    sendToContent({ action: MESSAGES_OF_EXTENSION.CLEAR_CACHE });
+    }, 0);
 }
 
 

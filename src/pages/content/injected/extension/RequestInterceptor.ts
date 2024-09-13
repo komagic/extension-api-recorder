@@ -3,11 +3,9 @@
 import { cache_requests, cache_state } from '@root/src/shared/constant';
 import { getFromStore } from '@root/src/shared/store/local-store';
 import { getOriginPath } from '@root/utils/http/getOriginPath';
-import { logger } from '@root/utils/log';
-
 import AppStore from '../../ui/Context/AppStore';
 
-import fetchInterceptor from './fetch-interceptor';
+import { fetchInterceptor, init } from './fetch-interceptor';
 import ajaxProxy from './proxy-xhr';
 
 window[cache_requests] = {};
@@ -19,7 +17,7 @@ const INTERCEPT_TYPE = {
 
 export const sendResponseMessage = async (url, responseText, type = INTERCEPT_TYPE.XHR) => {
   if (type === INTERCEPT_TYPE.FETCH) {
-    logger('FETCH::', responseText);
+    console.log('FETCH::', responseText);
 
     responseText.text().then(function (text) {
       window.postMessage(
@@ -34,7 +32,7 @@ export const sendResponseMessage = async (url, responseText, type = INTERCEPT_TY
       );
     });
   } else {
-    logger('xhr::', responseText);
+    console.log('xhr::', responseText);
 
     window.postMessage(
       {
@@ -99,9 +97,13 @@ const enable_save_response = (state, config, url) => {
 
 class RequestInterceptor {
   constructor() {
-    this.addListeners();
-    this.interceptXHR();
-    this.interceptFetch();
+    const enable = isEnableExtension();
+    if (enable) {
+      init();
+      this.addListeners();
+      this.interceptXHR();
+      this.interceptFetch();
+    }
   }
 
   getResponseByUrl(url, state) {
@@ -145,6 +147,8 @@ class RequestInterceptor {
   };
 
   registerRequest = (response_url, request, type = 'XHR') => {
+    console.log('registerRequest', response_url);
+
     const url = getOriginPath(response_url);
     if (!url) return;
 
@@ -177,6 +181,7 @@ class RequestInterceptor {
     const config = this.getConfig(url, state);
 
     const better_url = url;
+    console.log('captureResponse', type);
 
     // const enable_save_response = true||(enable_white_list(request.url) && disable_black_list(request.url));
     if (res.status === 204) {
@@ -185,10 +190,8 @@ class RequestInterceptor {
     if (url?.includes('chrome-extension')) {
       return;
     }
-    console.log('enable_save_response::', url);
 
     const flag = enable_save_response(state, config, better_url);
-
     // this enable record
     if (flag) {
       if (res?.status === 200) {
@@ -210,7 +213,7 @@ class RequestInterceptor {
     newXHR.open(method, url, async, originalXHR.user, originalXHR.pass);
     //write xhr settings
     console.log('newXHR', newXHR, 'getAllResponseHeaders', newXHR.getAllResponseHeaders());
-    newXHR.onloadend = originalXHR.onloadend
+    newXHR.onloadend = originalXHR.onloadend;
     //insert headers
     for (const header in originalXHR.headers) {
       const value = originalXHR.headers[header];
@@ -287,66 +290,114 @@ class RequestInterceptor {
 
   interceptXHR = async () => {
     const self = this;
-
     ajaxProxy.proxyAjax({
       open: function (args, xhr) {
-        console.log('open', args);
         this.method = args[0];
         this.async = args[2];
       },
 
-      // responseText: {
-      //   setter: function (value, xhr) {
-      //     return value;
-      //   },
-      // },
+      responseText: {
+        // setter: function (value, xhr) {
+        //   return value;
+        // },
+      },
 
       send: function (args, xhr) {
         this.body = args[0];
       },
-      onloadend: function (xhr) {
-        console.log('onloadend',xhr);
+      onreadystatechange: function (xhr) {
+        const url = xhr.responseURL;
 
-        const responseText = xhr.responseText;
-        const url = xhr.responseURL
-        self.registerRequest(url, xhr);
-        const state = getState();
-        const config = self.getConfig(url, state);
-        
-        if (isEnableExtension() && !config?.enable_mock) {
-          self.captureResponse(responseText, xhr, INTERCEPT_TYPE.XHR);
-        }
+        self.registerRequest(url, xhr, INTERCEPT_TYPE.XHR);
+        if (xhr.readyState === 4) {
+          // return
+          const responseText = xhr.responseText;
+          const is_enable_extension = isEnableExtension();
 
-        if (isEnableExtension() && config?.enable_mock) {
-          const responseText = self.getResponseByUrl(xhr.responseURL, state);
-          Object.defineProperty(xhr, 'response', { writable: true });
-          Object.defineProperty(xhr, 'responseText', { writable: true });
-          xhr.responseText = responseText;
+          const state = getState();
+          const config = self.getConfig(url, state);
+
+          if (is_enable_extension && !config?.enable_mock) {
+            self.captureResponse(responseText, xhr, INTERCEPT_TYPE.XHR);
+          }
+
+          if (is_enable_extension && config?.enable_mock) {
+            const responseText = self.getResponseByUrl(xhr.responseURL, state);
+            Object.defineProperty(xhr, 'response', { writable: true });
+            Object.defineProperty(xhr, 'responseText', { writable: true });
+            Object.defineProperty(xhr, 'data', { writable: true });
+            xhr.responseText = responseText;
+            xhr.response = responseText;
+          }
         }
       },
+
+      // onloadend: function (xhr) {
+      //   console.log('onloadend', xhr);
+
+      //   // return
+      //   const responseText = xhr.responseText;
+
+      //   const is_enable_extension  = isEnableExtension()
+      //   const url = xhr.responseURL;
+
+      //   const state = getState();
+      //   const config = self.getConfig(url, state);
+
+      //   if (is_enable_extension && !config?.enable_mock) {
+      //     self.captureResponse(responseText, xhr, INTERCEPT_TYPE.XHR);
+      //   }
+
+      //   if (is_enable_extension && config?.enable_mock) {
+      //     const responseText = self.getResponseByUrl(xhr.responseURL, state);
+      //     Object.defineProperty(xhr, 'response', { writable: true });
+      //     Object.defineProperty(xhr, 'responseText', { writable: true });
+      //     Object.defineProperty(xhr, 'data', { writable: true });
+      //     xhr.responseText = responseText;
+      //     xhr.response = responseText;
+      //   }
+      // },
     });
+  };
+
+  jsonifyValidJSONString = mightBeJSONString => {
+    if (typeof mightBeJSONString !== 'string') return mightBeJSONString;
+
+    try {
+      return JSON.parse(mightBeJSONString);
+    } catch (e) {
+      /* Do Nothing. Unable to parse the param value */
+    }
+
+    return mightBeJSONString;
   };
 
   interceptFetch() {
     const self = this;
+
     return fetchInterceptor.register({
       request: async function (url, config) {
         // Modify the url or config here
-        if (isEnableExtension()) {
-          const state = await AppStore.load();
-          const _config = self.getConfig(url, state);
+        console.log('statestateconfig', config, url);
 
-          if (_config?.enable_mock) {
-            const responseText = self.getResponseByUrl(url, state);
+        try {
+          if (isEnableExtension()) {
+            const state = await AppStore.load();
+            const _config = self.getConfig(url, state);
 
-            return Promise.reject(
-              new Response(new Blob([responseText]), {
-                status: 200,
-                statusText: 'fromCache',
-                headers: { 'Content-Type': 'application/json' },
-              }),
-            );
+            if (_config?.enable_mock) {
+              const responseText = self.getResponseByUrl(url, state);
+              return Promise.reject(
+                new Response(new Blob([responseText]), {
+                  status: 200,
+                  statusText: 'fromCache',
+                  headers: { 'Content-Type': 'application/json' },
+                }),
+              );
+            }
           }
+        } catch (error) {
+          console.error('interceptFetch:error', error);
         }
         return [url, config];
       },
@@ -364,18 +415,22 @@ class RequestInterceptor {
         }
         return error;
       },
-
       response: function (response) {
         // Modify the reponse object
-        const state = getState();
-        const config = self.getConfig(response.url, state);
-        const cloneReponse = response.clone();
-        self.registerRequest(cloneReponse.url, response.request, INTERCEPT_TYPE.FETCH);
-        // mock
-        if (isEnableExtension() && !config?.enable_mock) {
-          self.captureResponse(cloneReponse, cloneReponse, INTERCEPT_TYPE.FETCH);
+
+        try {
+          const state = getState();
+          const config = self.getConfig(response.url, state);
+          const cloneReponse = response.clone();
+
+          self.registerRequest(cloneReponse.url, response.request, INTERCEPT_TYPE.FETCH);
+          // mock
+          if (isEnableExtension() && !config?.enable_mock) {
+            self.captureResponse(cloneReponse, cloneReponse, INTERCEPT_TYPE.FETCH);
+          }
+        } catch (error) {
+          console.log('responseError', error);
         }
-        console.log('response~~~~', response);
 
         return response;
       },

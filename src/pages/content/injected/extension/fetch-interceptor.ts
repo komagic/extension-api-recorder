@@ -26,6 +26,8 @@ let interceptors = [];
 
 function interceptor(fetch, ...args) {
   const reversedInterceptors = interceptors.reduce((array, interceptor) => [interceptor].concat(array), []);
+  console.log('interceptorinterceptor', fetch, ...args);
+
   let promise = Promise.resolve(args);
 
   // Register request interceptors
@@ -36,15 +38,17 @@ function interceptor(fetch, ...args) {
   });
 
   // Register fetch call
-  promise = promise.then((args: [RequestInfo | URL,RequestInit]) => {
+  promise = promise.then((args: [RequestInfo | URL, RequestInit]) => {
     const request = new Request(...args);
-    return fetch(request).then(response => {
-      response.request = request;
-      return response;
-    }).catch(error => {
-      error.request = request;
-      return Promise.reject(error);
-    });
+    return fetch(request)
+      .then(response => {
+        response.request = request;
+        return response;
+      })
+      .catch(error => {
+        error.request = request;
+        return Promise.reject(error);
+      });
   });
 
   // Register response interceptors
@@ -57,7 +61,7 @@ function interceptor(fetch, ...args) {
   return promise;
 }
 
- function main(env) {
+function main(env) {
   // Make sure fetch is available in the given environment
   if (!env.fetch) {
     try {
@@ -74,7 +78,11 @@ function interceptor(fetch, ...args) {
 
   return {
     register: function (interceptor: FetchInterceptor) {
+      if (Object.keys(interceptor).length < 1) {
+        return;
+      }
       interceptors.push(interceptor);
+
       return () => {
         const index = interceptors.indexOf(interceptor);
         if (index >= 0) {
@@ -84,14 +92,16 @@ function interceptor(fetch, ...args) {
     },
     clear: function () {
       interceptors = [];
-    }
+    },
   };
+}
+
+// const fetchInterceptor = main(window);
+export let fetchInterceptor;
+export const init = () => {
+  fetchInterceptor = main(window);
 };
 
-
-const fetchInterceptor = main(window);
-
-export default fetchInterceptor;
 
 export interface FetchInterceptorResponse extends Response {
   request: Request;

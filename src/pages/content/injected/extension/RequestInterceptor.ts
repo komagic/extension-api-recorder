@@ -185,10 +185,8 @@ class RequestInterceptor {
     if (url?.includes('chrome-extension')) {
       return;
     }
-    console.log('enable_save_response::', url);
 
     const flag = enable_save_response(state, config, better_url);
-
     // this enable record
     if (flag) {
       if (res?.status === 200) {
@@ -209,7 +207,6 @@ class RequestInterceptor {
     //perform open
     newXHR.open(method, url, async, originalXHR.user, originalXHR.pass);
     //write xhr settings
-    console.log('newXHR', newXHR, 'getAllResponseHeaders', newXHR.getAllResponseHeaders());
     newXHR.onloadend = originalXHR.onloadend
     //insert headers
     for (const header in originalXHR.headers) {
@@ -290,7 +287,6 @@ class RequestInterceptor {
 
     ajaxProxy.proxyAjax({
       open: function (args, xhr) {
-        console.log('open', args);
         this.method = args[0];
         this.async = args[2];
       },
@@ -305,8 +301,6 @@ class RequestInterceptor {
         this.body = args[0];
       },
       onloadend: function (xhr) {
-        console.log('onloadend',xhr);
-
         const responseText = xhr.responseText;
         const url = xhr.responseURL
         self.registerRequest(url, xhr);
@@ -322,6 +316,7 @@ class RequestInterceptor {
           Object.defineProperty(xhr, 'response', { writable: true });
           Object.defineProperty(xhr, 'responseText', { writable: true });
           xhr.responseText = responseText;
+          xhr.response = responseText;
         }
       },
     });
@@ -333,32 +328,34 @@ class RequestInterceptor {
       request: async function (url, config) {
         // Modify the url or config here
         if (isEnableExtension()) {
-          const state = await AppStore.load();
-          const _config = self.getConfig(url, state);
-
-          if (_config?.enable_mock) {
-            const responseText = self.getResponseByUrl(url, state);
-
-            return Promise.reject(
-              new Response(new Blob([responseText]), {
-                status: 200,
-                statusText: 'fromCache',
-                headers: { 'Content-Type': 'application/json' },
-              }),
-            );
+          try {
+            const state = await AppStore.load();
+            const _config = self.getConfig(url, state);
+  
+            if (_config?.enable_mock) {
+              const responseText = self.getResponseByUrl(url, state);
+  
+              return Promise.reject(
+                new Response(new Blob([responseText]), {
+                  status: 200,
+                  statusText: 'fromCache',
+                  headers: { 'Content-Type': 'application/json' },
+                }),
+              );
+            }
+          } catch (error) {
+            console.error('interceptFetch:error', error);
           }
+         
         }
         return [url, config];
       },
 
       requestError: function (error) {
-        console.log('requestError', error);
-
         return Promise.reject(error);
       },
 
       responseError: function (error) {
-        console.log('responseError', error);
         if (error?.statusText === 'fromCache') {
           return Promise.resolve(error);
         }
@@ -375,7 +372,6 @@ class RequestInterceptor {
         if (isEnableExtension() && !config?.enable_mock) {
           self.captureResponse(cloneReponse, cloneReponse, INTERCEPT_TYPE.FETCH);
         }
-        console.log('response~~~~', response);
 
         return response;
       },

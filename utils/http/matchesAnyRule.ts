@@ -3,6 +3,9 @@ export const matchesAnyRule = (str: string, rules: (string | RegExp)[]) => {
   if (input === '') {
     return false;
   }
+  console.log('matchesAnyRule',rules,str);
+  
+  if(!rules) return false;
   return rules.some(pattern => {
     if (typeof pattern === 'string') {
       // 检查字符串是否是正则表达式格式 (即以斜杠开头和结尾)

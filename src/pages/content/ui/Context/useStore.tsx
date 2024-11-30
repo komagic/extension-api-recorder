@@ -86,7 +86,6 @@ const getUrlOriginPath = (url: string) => {
 };
 
 const updateWindowStore = state => {
-  // localStorage.setItem('__api_recorder__',JSON.stringify(state));
   window.postMessage(
     {
       type: 'inject:update-store',
@@ -152,8 +151,9 @@ const reducer = (s, action) => {
 
       // 根据rules规则,剔除不符合规则的内容
       Object.keys(state.apis_map).forEach(url => {
+        console.log('规则',state.apis_map);
+
         const flag = matchesAnyRule(url, state.rules);
-        console.log('规则',flag,url);
         if (!flag) {
           delete state.apis_map[url];
         }
@@ -166,6 +166,7 @@ const reducer = (s, action) => {
       if (!url) {
         return state;
       }
+      console.log('MessageNames.FETCH',action.url);
       if (!state.apis_map[url]) {
         state.apis_map[url] = createApiMap({
           method: MessageNames.FETCH,
@@ -179,7 +180,7 @@ const reducer = (s, action) => {
           state.apis_map[url].data.shift();
         }
       }
-
+      console.log('state.apis_map',state);
       // 根据rules规则,剔除不符合规则的内容
       Object.keys(state.apis_map).forEach(url => {
         const flag = matchesAnyRule(url, state.rules);
